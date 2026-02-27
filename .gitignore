@@ -1,6 +1,7 @@
 /node_modules
 /vendor
-/dist
+# dist assets are committed for Composer distribution (vendor:publish)
+/dist/**/*.map
 .phpunit.cache
 .phpunit.result.cache
 *.log
