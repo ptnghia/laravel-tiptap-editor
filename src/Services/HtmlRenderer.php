@@ -291,31 +291,51 @@ class HtmlRenderer
             return '';
         }
 
-        $alt = e($attrs['alt'] ?? '');
-        $title = isset($attrs['title']) ? ' title="' . e($attrs['title']) . '"' : '';
-        $width = isset($attrs['width']) ? ' width="' . (int) $attrs['width'] . '"' : '';
-        $height = isset($attrs['height']) ? ' height="' . (int) $attrs['height'] . '"' : '';
+        $alt     = e($attrs['alt'] ?? '');
+        $title   = isset($attrs['title'])  ? ' title="' . e($attrs['title'])  . '"' : '';
         $loading = ' loading="' . e($attrs['loading'] ?? 'lazy') . '"';
 
+        // Integer pixel dimensions (from upload)
+        $width  = isset($attrs['width'])  && is_numeric($attrs['width'])  ? ' width="'  . (int) $attrs['width']  . '"' : '';
+        $height = isset($attrs['height']) && is_numeric($attrs['height']) ? ' height="' . (int) $attrs['height'] . '"' : '';
+
+        // Alignment
         $allowedAlignments = ['left', 'center', 'right'];
-        $alignment = in_array($attrs['alignment'] ?? '', $allowedAlignments, true)
-            ? $attrs['alignment']
-            : 'center';
+        $alignment  = in_array($attrs['alignment'] ?? '', $allowedAlignments, true)
+            ? $attrs['alignment'] : 'center';
         $alignClass = match ($alignment) {
-            'left' => 'text-start',
+            'left'  => 'text-start',
             'right' => 'text-end',
             default => 'text-center',
         };
 
+        // Extra CSS class on figure
+        $extraClass = ! empty($attrs['extraClass']) ? ' ' . e($attrs['extraClass']) : '';
+
+        // Width style (e.g. "50%" / "400px")
+        $widthStyle = ! empty($attrs['widthStyle']) ? ' style="width:' . e($attrs['widthStyle']) . '"' : '';
+
+        // Build <img>
         $img = "<img src=\"{$src}\" alt=\"{$alt}\"{$title}{$width}{$height}{$loading} class=\"img-fluid\">";
 
+        // Wrap in <a> if linkUrl is set
+        $linkUrl    = $attrs['linkUrl']    ?? null;
+        $linkTarget = $attrs['linkTarget'] ?? null;
+        if ($linkUrl) {
+            $href  = e($linkUrl);
+            $tgt   = $linkTarget ? ' target="' . e($linkTarget) . '"' : '';
+            $rel   = $linkTarget === '_blank' ? ' rel="noopener noreferrer"' : '';
+            $img   = "<a href=\"{$href}\"{$tgt}{$rel}>{$img}</a>";
+        }
+
+        // Caption
         $caption = '';
         if (! empty($attrs['caption'])) {
             $captionText = e($attrs['caption']);
             $caption = "<figcaption class=\"figure-caption\">{$captionText}</figcaption>";
         }
 
-        return "<figure class=\"{$alignClass}\">{$img}{$caption}</figure>";
+        return "<figure class=\"{$alignClass}{$extraClass}\"{$widthStyle}>{$img}{$caption}</figure>";
     }
 
     /**

@@ -146,7 +146,7 @@ class JsonSanitizer
     protected function sanitizeAttributeValue(string $attrName, mixed $value): mixed
     {
         // URLs need special sanitization
-        $urlAttributes = ['href', 'src', 'url'];
+        $urlAttributes = ['href', 'src', 'url', 'linkUrl'];
         if (in_array($attrName, $urlAttributes, true) && is_string($value)) {
             return $this->sanitizeUrl($value);
         }
@@ -155,6 +155,19 @@ class JsonSanitizer
         $intAttributes = ['level', 'start', 'colspan', 'rowspan', 'width', 'height', 'gutter', 'mediaId'];
         if (in_array($attrName, $intAttributes, true)) {
             return is_numeric($value) ? (int) $value : null;
+        }
+
+        // Constrained string attributes
+        if ($attrName === 'linkTarget') {
+            return in_array($value, ['_blank', '_self', '_parent', '_top'], true) ? $value : null;
+        }
+
+        // widthStyle: only allow "NNpx" or "NN%" patterns
+        if ($attrName === 'widthStyle') {
+            if (is_string($value) && preg_match('/^\d+(\.\d+)?(px|%)$/', trim($value))) {
+                return trim($value);
+            }
+            return null;
         }
 
         // Boolean attributes

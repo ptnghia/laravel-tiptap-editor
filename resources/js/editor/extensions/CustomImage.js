@@ -2,7 +2,7 @@
  * CustomImage – Tiptap Extension
  *
  * Enhanced image extension with upload support, caption, alignment,
- * mediaId reference, and lazy loading.
+ * widthStyle (px / %), extra CSS class, link wrapping, and modal editing.
  */
 
 import { Node, mergeAttributes } from '@tiptap/core';
@@ -72,6 +72,23 @@ const CustomImage = Node.create({
       loading: {
         default: 'lazy',
       },
+      // ── New in v1.1 ──
+      widthStyle: {
+        default: null,
+        parseHTML: (el) => el.style?.width || el.getAttribute('data-width-style') || null,
+      },
+      extraClass: {
+        default: null,
+        parseHTML: (el) => el.getAttribute('data-extra-class') || null,
+      },
+      linkUrl: {
+        default: null,
+        parseHTML: (el) => el.querySelector('a')?.getAttribute('href') || el.getAttribute('data-link-url') || null,
+      },
+      linkTarget: {
+        default: null,
+        parseHTML: (el) => el.querySelector('a')?.getAttribute('target') || null,
+      },
     };
   },
 
@@ -91,18 +108,28 @@ const CustomImage = Node.create({
   },
 
   renderHTML({ node, HTMLAttributes }) {
-    const { src, alt, title, caption, width, height, alignment, mediaId, loading } = node.attrs;
+    const {
+      src, alt, title, caption, width, height,
+      alignment, mediaId, loading,
+      widthStyle, extraClass, linkUrl, linkTarget,
+    } = node.attrs;
 
-    const alignClass = alignment === 'left' ? 'text-start' : alignment === 'right' ? 'text-end' : 'text-center';
+    const alignClass = alignment === 'left' ? 'text-start'
+      : alignment === 'right' ? 'text-end' : 'text-center';
+
+    let figClass = `tiptap-image ${alignClass}`;
+    if (extraClass) figClass += ' ' + extraClass;
 
     const figureAttrs = mergeAttributes(HTMLAttributes, {
       'data-type': 'custom-image',
-      class: `tiptap-image ${alignClass}`,
+      class: figClass,
     });
 
-    if (mediaId) {
-      figureAttrs['data-media-id'] = mediaId;
-    }
+    if (mediaId)    figureAttrs['data-media-id']    = mediaId;
+    if (widthStyle) figureAttrs['data-width-style']  = widthStyle;
+    if (extraClass) figureAttrs['data-extra-class']  = extraClass;
+    if (linkUrl)    figureAttrs['data-link-url']     = linkUrl;
+    if (widthStyle) figureAttrs.style               = `width:${widthStyle}`;
 
     const imgAttrs = {
       src: src || '',
@@ -110,12 +137,18 @@ const CustomImage = Node.create({
       class: 'img-fluid',
       loading: loading || 'lazy',
     };
-    if (title) imgAttrs.title = title;
-    if (width) imgAttrs.width = String(width);
+    if (title)  imgAttrs.title  = title;
+    if (width)  imgAttrs.width  = String(width);
     if (height) imgAttrs.height = String(height);
 
-    const children = [['img', imgAttrs]];
+    const imgEl = ['img', imgAttrs];
 
+    // Wrap in <a> if linkUrl is set
+    const imageContent = linkUrl
+      ? ['a', { href: linkUrl, target: linkTarget || null, rel: linkTarget === '_blank' ? 'noopener noreferrer' : null }, imgEl]
+      : imgEl;
+
+    const children = [imageContent];
     if (caption) {
       children.push(['figcaption', { class: 'figure-caption' }, caption]);
     }
@@ -135,15 +168,19 @@ const CustomImage = Node.create({
           return commands.insertContent({
             type: this.name,
             attrs: {
-              src: attrs.src || '',
-              alt: attrs.alt || '',
-              title: attrs.title || null,
-              caption: attrs.caption || null,
-              width: attrs.width || null,
-              height: attrs.height || null,
-              alignment: ALIGNMENTS.includes(attrs.alignment) ? attrs.alignment : 'center',
-              mediaId: attrs.mediaId || null,
-              loading: attrs.loading || 'lazy',
+              src:        attrs.src        || '',
+              alt:        attrs.alt        || '',
+              title:      attrs.title      || null,
+              caption:    attrs.caption    || null,
+              width:      attrs.width      || null,
+              height:     attrs.height     || null,
+              alignment:  ALIGNMENTS.includes(attrs.alignment) ? attrs.alignment : 'center',
+              mediaId:    attrs.mediaId    || null,
+              loading:    attrs.loading    || 'lazy',
+              widthStyle: attrs.widthStyle || null,
+              extraClass: attrs.extraClass || null,
+              linkUrl:    attrs.linkUrl    || null,
+              linkTarget: attrs.linkTarget || null,
             },
           });
         },
@@ -175,95 +212,112 @@ const CustomImage = Node.create({
       dom.setAttribute('data-type', 'custom-image');
       dom.contentEditable = 'false';
 
-      const { src, alt, title, caption, width, height, alignment, mediaId } = node.attrs;
+      // Helper: rebuild the full figure DOM from node attrs
+      const applyAttrs = (attrs) => {
+        const {
+          src, alt, title, caption,
+          width, height, alignment, mediaId,
+          widthStyle, extraClass, linkUrl, linkTarget,
+        } = attrs;
 
-      // Alignment
-      const alignClass = alignment === 'left' ? 'text-start' : alignment === 'right' ? 'text-end' : 'text-center';
-      dom.classList.add(alignClass);
+        // Clean previous content
+        dom.innerHTML = '';
 
-      if (mediaId) {
-        dom.setAttribute('data-media-id', mediaId);
-      }
+        // Alignment
+        dom.classList.remove('text-start', 'text-center', 'text-end');
+        dom.classList.add(
+          alignment === 'left' ? 'text-start'
+            : alignment === 'right' ? 'text-end'
+              : 'text-center',
+        );
 
-      // Image element
-      const img = document.createElement('img');
-      img.src = src || '';
-      img.alt = alt || '';
-      img.className = 'img-fluid';
-      img.loading = 'lazy';
-      if (title) img.title = title;
-      if (width) img.width = width;
-      if (height) img.height = height;
-      dom.appendChild(img);
+        // Extra class on figure
+        if (extraClass) dom.setAttribute('data-extra-class', extraClass);
 
-      // Caption
-      if (caption) {
-        const cap = document.createElement('figcaption');
-        cap.className = 'figure-caption';
-        cap.textContent = caption;
-        dom.appendChild(cap);
-      }
+        // Width style on figure
+        if (widthStyle) {
+          dom.style.width = widthStyle;
+          dom.style.display = 'inline-block'; // so width applies correctly
+        } else {
+          dom.style.width  = '';
+          dom.style.display = '';
+        }
 
-      // Double-click to edit
+        if (mediaId) dom.setAttribute('data-media-id', mediaId);
+
+        // Build img
+        const img = document.createElement('img');
+        img.src        = src || '';
+        img.alt        = alt || '';
+        img.className  = 'img-fluid';
+        img.loading    = 'lazy';
+        if (title)  img.title  = title;
+        if (width)  img.width  = width;
+        if (height) img.height = height;
+
+        // Wrap in <a> if needed
+        if (linkUrl) {
+          const a = document.createElement('a');
+          a.href = linkUrl;
+          if (linkTarget) a.target = linkTarget;
+          if (linkTarget === '_blank') a.rel = 'noopener noreferrer';
+          a.appendChild(img);
+          dom.appendChild(a);
+        } else {
+          dom.appendChild(img);
+        }
+
+        // Caption
+        if (caption) {
+          const cap = document.createElement('figcaption');
+          cap.className   = 'figure-caption';
+          cap.textContent = caption;
+          dom.appendChild(cap);
+        }
+
+        // Edit overlay button (shown on hover)
+        const editBtn = document.createElement('button');
+        editBtn.type      = 'button';
+        editBtn.className = 'tiptap-image-edit-btn';
+        editBtn.title     = 'Edit image (double-click)';
+        editBtn.innerHTML = '<i class="bi bi-pencil-square"></i>';
+        editBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openModal();
+        });
+        dom.appendChild(editBtn);
+      };
+
+      // Open the ImageModal for this image
+      const openModal = () => {
+        // Access ImageModal via the toolbar stored on the editor instance
+        const toolbar = editor._tiptapToolbar;
+        if (toolbar?.imageModal) {
+          const pos = typeof getPos === 'function' ? getPos() : null;
+          if (pos !== null) {
+            // Select the node so updateCustomImage targets it
+            editor.chain().focus().setNodeSelection(pos).run();
+          }
+          toolbar.imageModal.open(node.attrs);
+        }
+      };
+
+      // Double-click: open modal
       dom.addEventListener('dblclick', (e) => {
         e.preventDefault();
         e.stopPropagation();
-
-        const newAlt = prompt('Alt text:', node.attrs.alt || '');
-        if (newAlt === null) return;
-
-        const newCaption = prompt('Caption (optional):', node.attrs.caption || '');
-
-        const pos = getPos();
-        if (typeof pos !== 'number') return;
-
-        editor
-          .chain()
-          .focus()
-          .command(({ tr }) => {
-            tr.setNodeMarkup(pos, undefined, {
-              ...node.attrs,
-              alt: newAlt,
-              caption: newCaption || null,
-            });
-            return true;
-          })
-          .run();
+        openModal();
       });
+
+      // Initial render
+      applyAttrs(node.attrs);
 
       return {
         dom,
         update(updatedNode) {
           if (updatedNode.type.name !== 'customImage') return false;
-
-          img.src = updatedNode.attrs.src || '';
-          img.alt = updatedNode.attrs.alt || '';
-          if (updatedNode.attrs.title) img.title = updatedNode.attrs.title;
-          if (updatedNode.attrs.width) img.width = updatedNode.attrs.width;
-          if (updatedNode.attrs.height) img.height = updatedNode.attrs.height;
-
-          // Update alignment
-          dom.classList.remove('text-start', 'text-center', 'text-end');
-          const newAlignClass = updatedNode.attrs.alignment === 'left'
-            ? 'text-start'
-            : updatedNode.attrs.alignment === 'right'
-              ? 'text-end'
-              : 'text-center';
-          dom.classList.add(newAlignClass);
-
-          // Update caption
-          let figcaption = dom.querySelector('figcaption');
-          if (updatedNode.attrs.caption) {
-            if (!figcaption) {
-              figcaption = document.createElement('figcaption');
-              figcaption.className = 'figure-caption';
-              dom.appendChild(figcaption);
-            }
-            figcaption.textContent = updatedNode.attrs.caption;
-          } else if (figcaption) {
-            figcaption.remove();
-          }
-
+          applyAttrs(updatedNode.attrs);
           return true;
         },
         destroy() {},

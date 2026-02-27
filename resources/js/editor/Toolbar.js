@@ -5,6 +5,8 @@
  * manages active states, and dispatches editor commands.
  */
 
+import { ImageModal } from './ImageModal.js';
+
 /**
  * Button definition: maps a toolbar button ID to its editor command, icon, and label.
  * @typedef {Object} ButtonDef
@@ -312,6 +314,12 @@ export default class Toolbar {
 
     /** @type {Map<string, HTMLButtonElement>} */
     this.buttons = new Map();
+
+    // Expose toolbar ref on editor so nodeViews (e.g. CustomImage) can access it
+    this.editor._tiptapToolbar = this;
+
+    // Image insert/edit modal
+    this.imageModal = new ImageModal(this);
 
     this._render();
     this._bindEvents();
@@ -651,66 +659,11 @@ export default class Toolbar {
   }
 
   /**
-   * Handle image insertion – try upload first, fall back to URL prompt.
+   * Handle image insertion – opens the ImageModal.
    * @private
    */
   _handleImage() {
-    // Create a file input for upload
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    fileInput.style.display = 'none';
-
-    fileInput.addEventListener('change', async (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      try {
-        const uploadUrl = this._getUploadUrl();
-        if (uploadUrl) {
-          const media = await this._uploadFile(file, uploadUrl);
-          this.editor
-            .chain()
-            .focus()
-            .insertCustomImage({
-              src: media.url,
-              alt: media.alt || file.name,
-              mediaId: media.id,
-              width: media.width,
-              height: media.height,
-            })
-            .run();
-        } else {
-          // No upload URL configured, use base64 as a fallback preview
-          const reader = new FileReader();
-          reader.onload = () => {
-            this.editor
-              .chain()
-              .focus()
-              .insertCustomImage({ src: reader.result, alt: file.name })
-              .run();
-          };
-          reader.readAsDataURL(file);
-        }
-      } catch (err) {
-        console.error('[TiptapEditor] Image upload failed:', err);
-        alert('Image upload failed. Please try again.');
-      } finally {
-        fileInput.remove();
-      }
-    });
-
-    // Also allow cancelling – if no file picked, offer URL prompt
-    fileInput.addEventListener('cancel', () => {
-      fileInput.remove();
-      const url = prompt('Enter image URL:');
-      if (!url) return;
-      const alt = prompt('Enter alt text (optional):') || '';
-      this.editor.chain().focus().insertCustomImage({ src: url, alt }).run();
-    });
-
-    document.body.appendChild(fileInput);
-    fileInput.click();
+    this.imageModal.open();
   }
 
   /**
@@ -915,8 +868,11 @@ export default class Toolbar {
    * Destroy the toolbar and clean up.
    */
   destroy() {
+    this.imageModal?.destroy();
+    this.imageModal = null;
     this.buttons.clear();
     this.element.innerHTML = '';
+    if (this.editor) this.editor._tiptapToolbar = null;
     this.editor = null;
   }
 }

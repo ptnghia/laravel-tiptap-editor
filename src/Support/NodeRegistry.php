@@ -121,7 +121,8 @@ class NodeRegistry
             'children' => [],
         ],
         'customImage' => [
-            'attrs' => ['src', 'alt', 'title', 'caption', 'width', 'height', 'alignment', 'mediaId', 'loading'],
+            'attrs' => ['src', 'alt', 'title', 'caption', 'width', 'height', 'alignment', 'mediaId', 'loading',
+                        'widthStyle', 'extraClass', 'linkUrl', 'linkTarget'],
             'children' => [],
         ],
         'customVideo' => [
