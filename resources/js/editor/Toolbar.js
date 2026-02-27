@@ -1,0 +1,922 @@
+/**
+ * Tiptap Editor – Toolbar Manager
+ *
+ * Renders toolbar buttons based on configuration,
+ * manages active states, and dispatches editor commands.
+ */
+
+/**
+ * Button definition: maps a toolbar button ID to its editor command, icon, and label.
+ * @typedef {Object} ButtonDef
+ * @property {string} icon - Bootstrap Icons class name (without 'bi-' prefix)
+ * @property {string} label - Accessible label / tooltip
+ * @property {string} command - Editor command to execute
+ * @property {Object} [commandArgs] - Arguments for the command
+ * @property {Function} [isActive] - Custom function to check active state
+ * @property {string} [type] - 'button' (default), 'dropdown', 'separator'
+ */
+
+/** @type {Object.<string, ButtonDef>} */
+const BUTTON_DEFINITIONS = {
+  // ── Text Formatting ──────────────────
+  bold: {
+    icon: 'type-bold',
+    label: 'Bold',
+    command: 'toggleBold',
+    isActive: (editor) => editor.isActive('bold'),
+  },
+  italic: {
+    icon: 'type-italic',
+    label: 'Italic',
+    command: 'toggleItalic',
+    isActive: (editor) => editor.isActive('italic'),
+  },
+  underline: {
+    icon: 'type-underline',
+    label: 'Underline',
+    command: 'toggleUnderline',
+    isActive: (editor) => editor.isActive('underline'),
+  },
+  strike: {
+    icon: 'type-strikethrough',
+    label: 'Strikethrough',
+    command: 'toggleStrike',
+    isActive: (editor) => editor.isActive('strike'),
+  },
+  subscript: {
+    icon: 'subscript',
+    label: 'Subscript',
+    command: 'toggleSubscript',
+    isActive: (editor) => editor.isActive('subscript'),
+  },
+  superscript: {
+    icon: 'superscript',
+    label: 'Superscript',
+    command: 'toggleSuperscript',
+    isActive: (editor) => editor.isActive('superscript'),
+  },
+
+  // ── Headings ─────────────────────────
+  h1: {
+    icon: 'type-h1',
+    label: 'Heading 1',
+    command: 'toggleHeading',
+    commandArgs: { level: 1 },
+    isActive: (editor) => editor.isActive('heading', { level: 1 }),
+  },
+  h2: {
+    icon: 'type-h2',
+    label: 'Heading 2',
+    command: 'toggleHeading',
+    commandArgs: { level: 2 },
+    isActive: (editor) => editor.isActive('heading', { level: 2 }),
+  },
+  h3: {
+    icon: 'type-h3',
+    label: 'Heading 3',
+    command: 'toggleHeading',
+    commandArgs: { level: 3 },
+    isActive: (editor) => editor.isActive('heading', { level: 3 }),
+  },
+  h4: {
+    icon: 'type-h4',
+    label: 'Heading 4',
+    command: 'toggleHeading',
+    commandArgs: { level: 4 },
+    isActive: (editor) => editor.isActive('heading', { level: 4 }),
+  },
+
+  // ── Text Alignment ──────────────────
+  alignLeft: {
+    icon: 'text-left',
+    label: 'Align Left',
+    command: 'setTextAlign',
+    commandArgs: 'left',
+    isActive: (editor) => editor.isActive({ textAlign: 'left' }),
+  },
+  alignCenter: {
+    icon: 'text-center',
+    label: 'Align Center',
+    command: 'setTextAlign',
+    commandArgs: 'center',
+    isActive: (editor) => editor.isActive({ textAlign: 'center' }),
+  },
+  alignRight: {
+    icon: 'text-right',
+    label: 'Align Right',
+    command: 'setTextAlign',
+    commandArgs: 'right',
+    isActive: (editor) => editor.isActive({ textAlign: 'right' }),
+  },
+  alignJustify: {
+    icon: 'justify',
+    label: 'Justify',
+    command: 'setTextAlign',
+    commandArgs: 'justify',
+    isActive: (editor) => editor.isActive({ textAlign: 'justify' }),
+  },
+
+  // ── Lists ────────────────────────────
+  bulletList: {
+    icon: 'list-ul',
+    label: 'Bullet List',
+    command: 'toggleBulletList',
+    isActive: (editor) => editor.isActive('bulletList'),
+  },
+  orderedList: {
+    icon: 'list-ol',
+    label: 'Ordered List',
+    command: 'toggleOrderedList',
+    isActive: (editor) => editor.isActive('orderedList'),
+  },
+
+  // ── Block Elements ───────────────────
+  blockquote: {
+    icon: 'blockquote-left',
+    label: 'Blockquote',
+    command: 'toggleBlockquote',
+    isActive: (editor) => editor.isActive('blockquote'),
+  },
+  codeBlock: {
+    icon: 'code-square',
+    label: 'Code Block',
+    command: 'toggleCodeBlock',
+    isActive: (editor) => editor.isActive('codeBlock'),
+  },
+  horizontalRule: {
+    icon: 'hr',
+    label: 'Horizontal Rule',
+    command: 'setHorizontalRule',
+  },
+
+  // ── Insert ───────────────────────────
+  link: {
+    icon: 'link-45deg',
+    label: 'Link',
+    command: '_promptLink',
+    isActive: (editor) => editor.isActive('link'),
+  },
+  image: {
+    icon: 'image',
+    label: 'Image',
+    command: '_promptImage',
+  },
+  table: {
+    icon: 'table',
+    label: 'Table',
+    command: 'insertTable',
+    commandArgs: { rows: 3, cols: 3, withHeaderRow: true },
+  },
+
+  // ── History ──────────────────────────
+  undo: {
+    icon: 'arrow-counterclockwise',
+    label: 'Undo',
+    command: 'undo',
+  },
+  redo: {
+    icon: 'arrow-clockwise',
+    label: 'Redo',
+    command: 'redo',
+  },
+
+  // ── Format ───────────────────────────
+  color: {
+    icon: 'palette',
+    label: 'Text Color',
+    command: '_promptColor',
+    type: 'color',
+  },
+  highlight: {
+    icon: 'highlighter',
+    label: 'Highlight',
+    command: 'toggleHighlight',
+    isActive: (editor) => editor.isActive('highlight'),
+  },
+
+  // ── Layout ───────────────────────────
+  row: {
+    icon: 'layout-split',
+    label: 'Insert Layout',
+    command: '_showLayoutDropdown',
+    type: 'dropdown',
+    isActive: (editor) => editor.isActive('bootstrapRow'),
+  },
+  addColumn: {
+    icon: 'plus-square',
+    label: 'Add Column',
+    command: 'addColumnToRow',
+  },
+  removeColumn: {
+    icon: 'dash-square',
+    label: 'Remove Column',
+    command: 'removeColumn',
+  },
+  deleteRow: {
+    icon: 'trash',
+    label: 'Delete Row',
+    command: 'deleteBootstrapRow',
+  },
+
+  // ── Components ───────────────────────
+  alert: {
+    icon: 'exclamation-triangle',
+    label: 'Insert Alert',
+    command: '_showAlertDropdown',
+    type: 'dropdown',
+    isActive: (editor) => editor.isActive('bootstrapAlert'),
+  },
+  card: {
+    icon: 'card-heading',
+    label: 'Insert Card',
+    command: '_insertCard',
+    isActive: (editor) => editor.isActive('bootstrapCard'),
+  },
+  button: {
+    icon: 'hand-index',
+    label: 'Insert Button',
+    command: '_insertButton',
+  },
+
+  // ── Media ────────────────────────────
+  video: {
+    icon: 'play-btn',
+    label: 'Video',
+    command: '_promptVideo',
+  },
+  gallery: {
+    icon: 'images',
+    label: 'Gallery',
+    command: '_promptGallery',
+  },
+
+  // ── AI ───────────────────────────────
+  ai: {
+    icon: 'stars',
+    label: 'AI Assistant',
+    command: '_toggleAiPanel',
+    type: 'button',
+  },
+
+  // ── Utilities ────────────────────────
+  darkMode: {
+    icon: 'moon-fill',
+    label: 'Toggle Dark Mode',
+    command: '_toggleDarkMode',
+  },
+  shortcuts: {
+    icon: 'keyboard',
+    label: 'Keyboard Shortcuts',
+    command: '_showShortcuts',
+  },
+};
+
+/**
+ * Layout presets for the dropdown menu.
+ */
+const LAYOUT_PRESET_OPTIONS = [
+  { id: '1-col',  label: '1 Column',         icon: '[ 12 ]' },
+  { id: '2-col',  label: '2 Columns',        icon: '[ 6 | 6 ]' },
+  { id: '3-col',  label: '3 Columns',        icon: '[ 4 | 4 | 4 ]' },
+  { id: '4-col',  label: '4 Columns',        icon: '[ 3 | 3 | 3 | 3 ]' },
+  { id: '1-2',    label: 'Sidebar Left',     icon: '[ 4 | 8 ]' },
+  { id: '2-1',    label: 'Sidebar Right',    icon: '[ 8 | 4 ]' },
+  { id: '1-1-2',  label: '2 Narrow + Wide',  icon: '[ 3 | 3 | 6 ]' },
+  { id: '2-1-1',  label: 'Wide + 2 Narrow',  icon: '[ 6 | 3 | 3 ]' },
+];
+
+/**
+ * Alert type options for the dropdown menu.
+ */
+const ALERT_TYPE_OPTIONS = [
+  { id: 'primary',   label: 'Primary',   color: '#0d6efd' },
+  { id: 'secondary', label: 'Secondary', color: '#6c757d' },
+  { id: 'success',   label: 'Success',   color: '#198754' },
+  { id: 'danger',    label: 'Danger',    color: '#dc3545' },
+  { id: 'warning',   label: 'Warning',   color: '#ffc107' },
+  { id: 'info',      label: 'Info',      color: '#0dcaf0' },
+  { id: 'light',     label: 'Light',     color: '#f8f9fa' },
+  { id: 'dark',      label: 'Dark',      color: '#212529' },
+];
+
+export default class Toolbar {
+  /**
+   * @param {HTMLElement} toolbarElement - The [data-tiptap-toolbar] element
+   * @param {import('@tiptap/core').Editor} editor - Tiptap editor instance
+   * @param {Object} config - Toolbar config with groups
+   */
+  constructor(toolbarElement, editor, config = {}) {
+    this.element = toolbarElement;
+    this.editor = editor;
+    this.config = config;
+
+    /** @type {Map<string, HTMLButtonElement>} */
+    this.buttons = new Map();
+
+    this._render();
+    this._bindEvents();
+  }
+
+  /**
+   * Render toolbar buttons into the toolbar element.
+   * @private
+   */
+  _render() {
+    const groups = this.config.groups || {};
+    const container = this.element.querySelector('.tiptap-toolbar') || this.element;
+
+    // Clear existing content
+    container.innerHTML = '';
+
+    const groupNames = Object.keys(groups);
+
+    groupNames.forEach((groupName, groupIndex) => {
+      const buttonIds = groups[groupName];
+      if (!buttonIds || buttonIds.length === 0) return;
+
+      const groupEl = document.createElement('div');
+      groupEl.className = 'tiptap-toolbar__group';
+      groupEl.setAttribute('role', 'group');
+      groupEl.setAttribute('aria-label', groupName);
+
+      buttonIds.forEach((btnId) => {
+        const def = BUTTON_DEFINITIONS[btnId];
+        if (!def) return;
+
+        if (def.type === 'color') {
+          groupEl.appendChild(this._createColorButton(btnId, def));
+        } else if (def.type === 'dropdown') {
+          groupEl.appendChild(this._createDropdownButton(btnId, def));
+        } else {
+          groupEl.appendChild(this._createButton(btnId, def));
+        }
+      });
+
+      container.appendChild(groupEl);
+
+      // Add separator between groups (except last)
+      if (groupIndex < groupNames.length - 1) {
+        const sep = document.createElement('div');
+        sep.className = 'tiptap-toolbar__separator';
+        sep.setAttribute('role', 'separator');
+        container.appendChild(sep);
+      }
+    });
+  }
+
+  /**
+   * Create a single toolbar button element.
+   * @private
+   * @param {string} id
+   * @param {ButtonDef} def
+   * @returns {HTMLButtonElement}
+   */
+  _createButton(id, def) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tiptap-toolbar__button';
+    btn.setAttribute('data-action', id);
+    btn.setAttribute('aria-label', def.label);
+    btn.setAttribute('title', def.label);
+    btn.innerHTML = `<i class="bi bi-${def.icon}"></i>`;
+
+    this.buttons.set(id, btn);
+
+    return btn;
+  }
+
+  /**
+   * Create a color picker toolbar button.
+   * @private
+   * @param {string} id
+   * @param {ButtonDef} def
+   * @returns {HTMLElement}
+   */
+  _createColorButton(id, def) {
+    const wrapper = document.createElement('span');
+    wrapper.className = 'tiptap-toolbar__color-wrapper';
+    wrapper.style.position = 'relative';
+    wrapper.style.display = 'inline-flex';
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tiptap-toolbar__button';
+    btn.setAttribute('data-action', id);
+    btn.setAttribute('aria-label', def.label);
+    btn.setAttribute('title', def.label);
+    btn.innerHTML = `<i class="bi bi-${def.icon}"></i>`;
+
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.className = 'tiptap-toolbar__color-input';
+    colorInput.style.cssText =
+      'position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; padding: 0; border: 0; cursor: pointer; opacity: 0.7;';
+    colorInput.value = '#000000';
+
+    colorInput.addEventListener('input', (e) => {
+      this.editor.chain().focus().setColor(e.target.value).run();
+    });
+
+    btn.addEventListener('click', () => {
+      colorInput.click();
+    });
+
+    wrapper.appendChild(btn);
+    wrapper.appendChild(colorInput);
+
+    this.buttons.set(id, btn);
+
+    return wrapper;
+  }
+
+  /**
+   * Create a dropdown toolbar button (e.g., layout presets).
+   * @private
+   * @param {string} id
+   * @param {ButtonDef} def
+   * @returns {HTMLElement}
+   */
+  _createDropdownButton(id, def) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'tiptap-toolbar__dropdown';
+    wrapper.style.position = 'relative';
+    wrapper.style.display = 'inline-flex';
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tiptap-toolbar__button';
+    btn.setAttribute('data-action', id);
+    btn.setAttribute('aria-label', def.label);
+    btn.setAttribute('title', def.label);
+    btn.setAttribute('aria-haspopup', 'true');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.innerHTML = `<i class="bi bi-${def.icon}"></i>`;
+
+    // Dropdown menu
+    const menu = document.createElement('div');
+    menu.className = 'tiptap-toolbar__dropdown-menu';
+    menu.setAttribute('role', 'menu');
+    menu.style.display = 'none';
+
+    if (id === 'row') {
+      LAYOUT_PRESET_OPTIONS.forEach((preset) => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'tiptap-toolbar__dropdown-item';
+        item.setAttribute('data-layout-preset', preset.id);
+        item.setAttribute('role', 'menuitem');
+        item.innerHTML = `<span class="tiptap-toolbar__preset-icon">${preset.icon}</span> <span>${preset.label}</span>`;
+        menu.appendChild(item);
+      });
+    }
+
+    if (id === 'alert') {
+      ALERT_TYPE_OPTIONS.forEach((alertOpt) => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'tiptap-toolbar__dropdown-item';
+        item.setAttribute('data-alert-type', alertOpt.id);
+        item.setAttribute('role', 'menuitem');
+        item.innerHTML = `<span class="tiptap-toolbar__alert-swatch" style="background:${alertOpt.color}"></span> <span>${alertOpt.label}</span>`;
+        menu.appendChild(item);
+      });
+    }
+
+    // Toggle dropdown
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = menu.style.display !== 'none';
+      this._closeAllDropdowns();
+      if (!isOpen) {
+        menu.style.display = 'block';
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+
+    // Handle preset/alert selection
+    menu.addEventListener('click', (e) => {
+      const layoutItem = e.target.closest('[data-layout-preset]');
+      if (layoutItem) {
+        e.stopPropagation();
+        const preset = layoutItem.getAttribute('data-layout-preset');
+        this.editor.chain().focus().insertBootstrapRow(preset).run();
+        menu.style.display = 'none';
+        btn.setAttribute('aria-expanded', 'false');
+        return;
+      }
+
+      const alertItem = e.target.closest('[data-alert-type]');
+      if (alertItem) {
+        e.stopPropagation();
+        const alertType = alertItem.getAttribute('data-alert-type');
+        this.editor.chain().focus().insertBootstrapAlert(alertType).run();
+        menu.style.display = 'none';
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    wrapper.appendChild(btn);
+    wrapper.appendChild(menu);
+
+    this.buttons.set(id, btn);
+
+    return wrapper;
+  }
+
+  /**
+   * Close all open dropdowns in the toolbar.
+   * @private
+   */
+  _closeAllDropdowns() {
+    this.element.querySelectorAll('.tiptap-toolbar__dropdown-menu').forEach((m) => {
+      m.style.display = 'none';
+    });
+    this.element.querySelectorAll('[aria-expanded]').forEach((b) => {
+      b.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  /**
+   * Bind click events to toolbar buttons.
+   * @private
+   */
+  _bindEvents() {
+    this.element.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+
+      e.preventDefault();
+      const action = btn.getAttribute('data-action');
+      this._executeAction(action);
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!this.element.contains(e.target)) {
+        this._closeAllDropdowns();
+      }
+    });
+  }
+
+  /**
+   * Execute a toolbar button action.
+   * @private
+   * @param {string} actionId
+   */
+  _executeAction(actionId) {
+    const def = BUTTON_DEFINITIONS[actionId];
+    if (!def || !this.editor) return;
+
+    const command = def.command;
+
+    // Handle special commands that need prompts
+    if (command === '_promptLink') {
+      this._handleLink();
+      return;
+    }
+    if (command === '_promptImage') {
+      this._handleImage();
+      return;
+    }
+    if (command === '_promptColor') {
+      // Color is handled by the color input, skip
+      return;
+    }
+    if (command === '_showLayoutDropdown') {
+      // Layout dropdown is handled by the dropdown button itself
+      return;
+    }
+    if (command === '_showAlertDropdown') {
+      // Alert dropdown is handled by the dropdown button itself
+      return;
+    }
+    if (command === '_insertCard') {
+      this._handleInsertCard();
+      return;
+    }
+    if (command === '_insertButton') {
+      this._handleInsertButton();
+      return;
+    }
+    if (command === '_promptVideo') {
+      this._handleVideo();
+      return;
+    }
+    if (command === '_promptGallery') {
+      this._handleGallery();
+      return;
+    }
+    if (command === '_toggleAiPanel') {
+      this._handleToggleAiPanel();
+      return;
+    }
+    if (command === '_toggleDarkMode') {
+      this._handleToggleDarkMode();
+      return;
+    }
+    if (command === '_showShortcuts') {
+      this._handleShowShortcuts();
+      return;
+    }
+
+    // Execute the editor command
+    const chain = this.editor.chain().focus();
+
+    if (def.commandArgs !== undefined) {
+      chain[command](def.commandArgs).run();
+    } else {
+      chain[command]().run();
+    }
+  }
+
+  /**
+   * Handle link insertion/removal with a prompt.
+   * @private
+   */
+  _handleLink() {
+    if (this.editor.isActive('link')) {
+      this.editor.chain().focus().unsetLink().run();
+      return;
+    }
+
+    const url = prompt('Enter URL:');
+    if (!url) return;
+
+    this.editor
+      .chain()
+      .focus()
+      .extendMarkRange('link')
+      .setLink({ href: url })
+      .run();
+  }
+
+  /**
+   * Handle image insertion – try upload first, fall back to URL prompt.
+   * @private
+   */
+  _handleImage() {
+    // Create a file input for upload
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      try {
+        const uploadUrl = this._getUploadUrl();
+        if (uploadUrl) {
+          const media = await this._uploadFile(file, uploadUrl);
+          this.editor
+            .chain()
+            .focus()
+            .insertCustomImage({
+              src: media.url,
+              alt: media.alt || file.name,
+              mediaId: media.id,
+              width: media.width,
+              height: media.height,
+            })
+            .run();
+        } else {
+          // No upload URL configured, use base64 as a fallback preview
+          const reader = new FileReader();
+          reader.onload = () => {
+            this.editor
+              .chain()
+              .focus()
+              .insertCustomImage({ src: reader.result, alt: file.name })
+              .run();
+          };
+          reader.readAsDataURL(file);
+        }
+      } catch (err) {
+        console.error('[TiptapEditor] Image upload failed:', err);
+        alert('Image upload failed. Please try again.');
+      } finally {
+        fileInput.remove();
+      }
+    });
+
+    // Also allow cancelling – if no file picked, offer URL prompt
+    fileInput.addEventListener('cancel', () => {
+      fileInput.remove();
+      const url = prompt('Enter image URL:');
+      if (!url) return;
+      const alt = prompt('Enter alt text (optional):') || '';
+      this.editor.chain().focus().insertCustomImage({ src: url, alt }).run();
+    });
+
+    document.body.appendChild(fileInput);
+    fileInput.click();
+  }
+
+  /**
+   * Get the media upload URL from config or CSRF meta.
+   * @private
+   * @returns {string|null}
+   */
+  _getUploadUrl() {
+    // Check if the editor wrapper has a data attribute
+    const wrapper = this.element.closest('[data-tiptap-editor]');
+    const configUrl = wrapper?.getAttribute('data-upload-url');
+    if (configUrl) return configUrl;
+
+    // Try default route
+    const prefix = document.querySelector('meta[name="tiptap-upload-url"]')?.content;
+    return prefix || null;
+  }
+
+  /**
+   * Upload a file to the server.
+   * @private
+   * @param {File} file
+   * @param {string} url
+   * @returns {Promise<Object>}
+   */
+  async _uploadFile(file, url) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const csrfToken =
+      document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': csrfToken,
+        Accept: 'application/json',
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.media || data;
+  }
+
+  /**
+   * Handle card insertion with prompt for header text.
+   * @private
+   */
+  _handleInsertCard() {
+    const headerText = prompt('Card header (leave empty for no header):') || null;
+    this.editor
+      .chain()
+      .focus()
+      .insertBootstrapCard({ headerText })
+      .run();
+  }
+
+  /**
+   * Handle button insertion with prompts.
+   * @private
+   */
+  _handleInsertButton() {
+    const text = prompt('Button text:', 'Click me');
+    if (text === null) return;
+
+    const url = prompt('Button URL:', '#');
+    if (url === null) return;
+
+    this.editor
+      .chain()
+      .focus()
+      .insertBootstrapButton({ text, url })
+      .run();
+  }
+
+  /**
+   * Handle video insertion with URL prompt.
+   * @private
+   */
+  _handleVideo() {
+    const url = prompt('Enter video URL (YouTube, Vimeo, or MP4):');
+    if (!url) return;
+
+    this.editor
+      .chain()
+      .focus()
+      .insertCustomVideo({ url })
+      .run();
+  }
+
+  /**
+   * Handle gallery insertion with file picker for multiple images.
+   * @private
+   */
+  _handleGallery() {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.multiple = true;
+    fileInput.style.display = 'none';
+
+    fileInput.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0) return;
+
+      try {
+        const uploadUrl = this._getUploadUrl();
+        const images = [];
+
+        for (const file of files) {
+          if (uploadUrl) {
+            const media = await this._uploadFile(file, uploadUrl);
+            images.push({ src: media.url, alt: media.alt || file.name });
+          } else {
+            // Fallback: use base64
+            const src = await new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.readAsDataURL(file);
+            });
+            images.push({ src, alt: file.name });
+          }
+        }
+
+        if (images.length > 0) {
+          const columns = images.length >= 4 ? 4 : images.length >= 3 ? 3 : 2;
+          this.editor
+            .chain()
+            .focus()
+            .insertGallery({ images, columns })
+            .run();
+        }
+      } catch (err) {
+        console.error('[TiptapEditor] Gallery upload failed:', err);
+        alert('Gallery upload failed. Please try again.');
+      } finally {
+        fileInput.remove();
+      }
+    });
+
+    document.body.appendChild(fileInput);
+    fileInput.click();
+  }
+
+  /**
+   * Update active states of all toolbar buttons based on current editor state.
+   * @param {import('@tiptap/core').Editor} editor
+   */
+  updateActiveStates(editor) {
+    this.buttons.forEach((btn, id) => {
+      const def = BUTTON_DEFINITIONS[id];
+      if (!def || !def.isActive) {
+        btn.classList.remove('tiptap-toolbar__button--active');
+        return;
+      }
+
+      try {
+        const active = def.isActive(editor);
+        btn.classList.toggle('tiptap-toolbar__button--active', active);
+      } catch {
+        btn.classList.remove('tiptap-toolbar__button--active');
+      }
+    });
+  }
+
+  /**
+   * Toggle the AI Assistant panel.
+   * Relies on the editor wrapper having an AiPanel instance.
+   * @private
+   */
+  _handleToggleAiPanel() {
+    // Dispatch a custom event that the Editor class listens for
+    const event = new CustomEvent('tiptap:toggle-ai-panel', { bubbles: true });
+    this.element.dispatchEvent(event);
+  }
+
+  /**
+   * Toggle dark mode on the editor.
+   * Cycles: auto → dark → light → auto
+   * @private
+   */
+  _handleToggleDarkMode() {
+    const event = new CustomEvent('tiptap:toggle-dark-mode', { bubbles: true });
+    this.element.dispatchEvent(event);
+  }
+
+  /**
+   * Show keyboard shortcuts help modal.
+   * @private
+   */
+  _handleShowShortcuts() {
+    const event = new CustomEvent('tiptap:show-shortcuts', { bubbles: true });
+    this.element.dispatchEvent(event);
+  }
+
+  /**
+   * Destroy the toolbar and clean up.
+   */
+  destroy() {
+    this.buttons.clear();
+    this.element.innerHTML = '';
+    this.editor = null;
+  }
+}
