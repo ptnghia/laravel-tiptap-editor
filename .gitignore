@@ -12,3 +12,17 @@
 *.swo
 coverage/
 /testapp/
+
+# Internal docs & plans (not published to GitHub)
+/.github/plan/
+/.github/reports/
+/.github/PHASE_0_SETUP.md
+/.github/ARCHITECTURE.md
+/.github/JSON_SCHEMA.md
+/.github/CONVENTIONS.md
+/.github/V2_INSERT_TOOLS_PLAN.md
+/.github/REQUIREMENTS_ANALYSIS.md
+/.github/FRONTEND_FRAMEWORK_PLAN.md
+/.github/TAILWIND_SUPPORT_PLAN.md
+/.github/TECH_STACK.md
+/.github/IMPLEMENTATION_PLAN.md
