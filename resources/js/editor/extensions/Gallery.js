@@ -133,6 +133,86 @@ const Gallery = Node.create({
         },
     };
   },
+
+  addNodeView() {
+    return ({ node, editor, getPos }) => {
+      const dom = document.createElement('div');
+      dom.setAttribute('data-type', 'gallery');
+      dom.style.position = 'relative';
+
+      const contentDOM = document.createElement('div');
+      contentDOM.className = 'row tiptap-gallery';
+
+      const applyAttrs = (attrs) => {
+        const { columns, gap, lightbox } = attrs;
+        const g = gap ?? 2;
+
+        contentDOM.className = `row g-${g} tiptap-gallery`;
+        if (lightbox) contentDOM.setAttribute('data-lightbox', 'true');
+        else contentDOM.removeAttribute('data-lightbox');
+        contentDOM.setAttribute('data-columns', columns || DEFAULT_COLUMNS);
+        contentDOM.setAttribute('data-gap', g);
+
+        // Remove old edit button if any
+        const oldBtn = dom.querySelector('.tiptap-node-edit-btn');
+        if (oldBtn) oldBtn.remove();
+
+        // Edit overlay button
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'tiptap-node-edit-btn';
+        editBtn.title = 'Edit gallery (double-click)';
+        editBtn.innerHTML = '<i class="bi bi-pencil-square"></i>';
+        editBtn.contentEditable = 'false';
+        editBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openModal();
+        });
+        dom.appendChild(editBtn);
+      };
+
+      const openModal = () => {
+        const toolbar = editor._tiptapToolbar;
+        if (toolbar?.galleryModal) {
+          // Extract images from child nodes
+          const images = [];
+          node.content.forEach(child => {
+            if (child.type.name === 'galleryImage') {
+              images.push({ src: child.attrs.src, alt: child.attrs.alt || '' });
+            }
+          });
+
+          toolbar.galleryModal.open({
+            columns: node.attrs.columns,
+            gap: node.attrs.gap,
+            lightbox: node.attrs.lightbox,
+            images,
+          });
+        }
+      };
+
+      dom.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openModal();
+      });
+
+      dom.appendChild(contentDOM);
+      applyAttrs(node.attrs);
+
+      return {
+        dom,
+        contentDOM,
+        update(updatedNode) {
+          if (updatedNode.type.name !== 'gallery') return false;
+          applyAttrs(updatedNode.attrs);
+          return true;
+        },
+        destroy() {},
+      };
+    };
+  },
 });
 
 /**

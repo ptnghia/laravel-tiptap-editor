@@ -528,7 +528,12 @@ export default class Toolbar {
       if (alertItem) {
         e.stopPropagation();
         const alertType = alertItem.getAttribute('data-alert-type');
-        this.editor.chain().focus().insertBootstrapAlert(alertType).run();
+        // If cursor is inside an existing alert, change its type; otherwise insert new
+        if (this.editor.isActive('bootstrapAlert')) {
+          this.editor.chain().focus().setAlertType(alertType).run();
+        } else {
+          this.editor.chain().focus().insertBootstrapAlert(alertType).run();
+        }
         menu.style.display = 'none';
         btn.setAttribute('aria-expanded', 'false');
       }
@@ -598,7 +603,26 @@ export default class Toolbar {
       return;
     }
     if (command === '_promptTable') {
-      this.tableModal.open();
+      // If cursor is inside a table, open in edit mode with current styles
+      if (this.editor.isActive('table')) {
+        const { $from } = this.editor.state.selection;
+        let styles = null;
+        for (let d = $from.depth; d > 0; d--) {
+          const node = $from.node(d);
+          if (node.type.name === 'table') {
+            styles = {
+              bordered: !!node.attrs.bordered,
+              striped: !!node.attrs.striped,
+              hover: !!node.attrs.hover,
+              small: !!node.attrs.small,
+            };
+            break;
+          }
+        }
+        this.tableModal.open(styles);
+      } else {
+        this.tableModal.open();
+      }
       return;
     }
     if (command === '_promptColor') {

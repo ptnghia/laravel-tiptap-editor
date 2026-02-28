@@ -191,6 +191,99 @@ const BootstrapCard = Node.create({
       },
     };
   },
+
+  addNodeView() {
+    return ({ node, editor, getPos }) => {
+      // Outer card wrapper
+      const dom = document.createElement('div');
+      dom.setAttribute('data-type', 'bootstrap-card');
+      dom.style.position = 'relative';
+
+      // Content editable area (ProseMirror mounts here)
+      const contentDOM = document.createElement('div');
+      contentDOM.className = 'card-body';
+
+      const applyAttrs = (attrs) => {
+        const { headerText, footerText, borderColor } = attrs;
+
+        // Remove all children except contentDOM
+        dom.innerHTML = '';
+
+        // Classes
+        dom.className = 'card tiptap-card-editable';
+        if (borderColor && CARD_BORDER_COLORS.includes(borderColor)) {
+          dom.classList.add(`border-${borderColor}`);
+        }
+
+        // Header
+        if (headerText) {
+          const header = document.createElement('div');
+          header.className = 'card-header';
+          header.contentEditable = 'false';
+          header.textContent = headerText;
+          dom.appendChild(header);
+        }
+
+        // Body (content hole)
+        dom.appendChild(contentDOM);
+
+        // Footer
+        if (footerText) {
+          const footer = document.createElement('div');
+          footer.className = 'card-footer text-muted';
+          footer.contentEditable = 'false';
+          footer.textContent = footerText;
+          dom.appendChild(footer);
+        }
+
+        // Edit overlay button
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'tiptap-node-edit-btn';
+        editBtn.title = 'Edit card (double-click)';
+        editBtn.innerHTML = '<i class="bi bi-pencil-square"></i>';
+        editBtn.contentEditable = 'false';
+        editBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openModal();
+        });
+        dom.appendChild(editBtn);
+      };
+
+      const openModal = () => {
+        const toolbar = editor._tiptapToolbar;
+        if (toolbar?.cardModal) {
+          toolbar.cardModal.open(node.attrs);
+        }
+      };
+
+      // Double-click header/footer/border area to edit
+      dom.addEventListener('dblclick', (e) => {
+        // Only trigger on non-body areas (header, footer, card border)
+        const target = e.target;
+        if (target.closest('.card-body') && !target.closest('.card-header') && !target.closest('.card-footer') && !target.classList.contains('tiptap-node-edit-btn')) {
+          return; // Let ProseMirror handle dblclick inside body
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        openModal();
+      });
+
+      applyAttrs(node.attrs);
+
+      return {
+        dom,
+        contentDOM,
+        update(updatedNode) {
+          if (updatedNode.type.name !== 'bootstrapCard') return false;
+          applyAttrs(updatedNode.attrs);
+          return true;
+        },
+        destroy() {},
+      };
+    };
+  },
 });
 
 export default BootstrapCard;

@@ -18,13 +18,24 @@ export class TableModal {
     this._bs = null;
     this._gridRows = 3;
     this._gridCols = 3;
+    this._isEditMode = false;
     this._build();
   }
 
   /* ───────────────────────────────────── public ── */
 
-  open() {
-    this._reset();
+  /**
+   * Open the table modal.
+   * @param {Object|null} existingStyles - If provided, opens in edit mode with { bordered, striped, hover, small }
+   */
+  open(existingStyles = null) {
+    this._isEditMode = !!existingStyles;
+    if (this._isEditMode) {
+      this._loadEditValues(existingStyles);
+    } else {
+      this._reset();
+    }
+    this._updateModalUI();
     this._bs.show();
   }
 
@@ -110,12 +121,66 @@ export class TableModal {
   }
 
   _insert() {
-    const rows = Math.min(20, Math.max(1, parseInt(this._el('rows').value) || 3));
-    const cols = Math.min(10, Math.max(1, parseInt(this._el('cols').value) || 3));
-    const withHeaderRow = this._el('headerRow').checked;
+    if (this._isEditMode) {
+      // Update existing table styles
+      const styles = {
+        bordered: this._el('bordered').checked,
+        striped: this._el('striped').checked,
+        hover: this._el('hover').checked,
+        small: this._el('small').checked,
+      };
+      this.editor.chain().focus().updateTableStyles(styles).run();
+    } else {
+      // Insert new table
+      const rows = Math.min(20, Math.max(1, parseInt(this._el('rows').value) || 3));
+      const cols = Math.min(10, Math.max(1, parseInt(this._el('cols').value) || 3));
+      const withHeaderRow = this._el('headerRow').checked;
+      const styles = {
+        bordered: this._el('bordered').checked,
+        striped: this._el('striped').checked,
+        hover: this._el('hover').checked,
+        small: this._el('small').checked,
+      };
 
-    this.editor.chain().focus().insertTable({ rows, cols, withHeaderRow }).run();
+      this.editor.chain().focus().insertTable({ rows, cols, withHeaderRow }).run();
+
+      // Apply styles after insertion (cursor is now inside the table)
+      this.editor.chain().focus().updateTableStyles(styles).run();
+    }
     this._bs.hide();
+  }
+
+  _loadEditValues(styles) {
+    this._el('bordered').checked = !!styles.bordered;
+    this._el('striped').checked = !!styles.striped;
+    this._el('hover').checked = !!styles.hover;
+    this._el('small').checked = !!styles.small;
+  }
+
+  _updateModalUI() {
+    const title = this._modal.querySelector('.modal-title');
+    const submitBtn = this._modal.querySelector('[data-tbl="insertBtn"]');
+    const gridSection = this._el('grid').closest('.text-center');
+    const rowsCol = this._el('rows').closest('.col-6');
+    const colsCol = this._el('cols').closest('.col-6');
+    const headerCheck = this._el('headerRow').closest('.form-check');
+
+    if (this._isEditMode) {
+      title.innerHTML = '<i class="bi bi-table me-2 text-primary"></i>Edit Table Styles';
+      submitBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Update Styles';
+      // Hide grid, rows/cols, and header row in edit mode
+      if (gridSection) gridSection.style.display = 'none';
+      if (rowsCol) rowsCol.style.display = 'none';
+      if (colsCol) colsCol.style.display = 'none';
+      if (headerCheck) headerCheck.style.display = 'none';
+    } else {
+      title.innerHTML = '<i class="bi bi-table me-2 text-primary"></i>Insert Table';
+      submitBtn.innerHTML = '<i class="bi bi-table me-1"></i>Insert Table';
+      if (gridSection) gridSection.style.display = '';
+      if (rowsCol) rowsCol.style.display = '';
+      if (colsCol) colsCol.style.display = '';
+      if (headerCheck) headerCheck.style.display = '';
+    }
   }
 
   _renderGrid() {

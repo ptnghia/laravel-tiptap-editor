@@ -17,7 +17,7 @@ import Superscript from '@tiptap/extension-superscript';
 import Color from '@tiptap/extension-color';
 import TextStyle from '@tiptap/extension-text-style';
 import Highlight from '@tiptap/extension-highlight';
-import Table from '@tiptap/extension-table';
+import CustomTable from './extensions/CustomTable';
 import TableRow from '@tiptap/extension-table-row';
 import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
@@ -284,7 +284,7 @@ export default class TiptapEditor {
     // Table
     if (enabledExtensions.includes('table')) {
       extensions.push(
-        Table.configure({
+        CustomTable.configure({
           resizable: true,
         })
       );
