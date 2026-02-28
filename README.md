@@ -16,14 +16,15 @@ A full-featured **Laravel package** providing a rich text editor built on **[Tip
 - **Lists** — Bullet list, ordered list (with start offset)
 - **Bootstrap 5 Layout** — Row/column grid with responsive breakpoints (`col-md-6`, `col-lg-4`, etc.)
 - **Bootstrap Components** — Alert (8 types), Card (header/body/footer), Button (inline atom)
-- **Media** — Image upload with thumbnail generation, Video embed (YouTube, Vimeo, MP4)
+- **Media** — Image upload with thumbnail generation, Video embed (YouTube, Vimeo, MP4), **Media library** for reusing uploaded files
 - **Gallery** — Multi-image gallery with responsive grid and lightbox
 - **Table** — Full table editing, cell merge (colspan/rowspan), Bootstrap-styled
 - **Code Block** — Syntax highlighting via lowlight
 - **Links** — Internal/external links with `rel`/`target` configuration
 - **Slash Commands** — Notion-style `/` command palette for quick block insertion
 - **Block Menu** — Floating action menu: duplicate, move up/down, delete, transform block
-- **Content Safety** — JSON sanitization, URL whitelist, XSS prevention, depth/size limits
+- **Content Safety** — JSON sanitization, URL whitelist, XSS prevention, depth/size limits, file content scanning, SVG sanitization
+- **Upload Security** — Gate/role-based permissions, blocked extensions, MIME mismatch detection, double-extension prevention, anti-polyglot scanning
 - **Server-side Rendering** — JSON → clean HTML via Blade partials
 - **Dark Mode** — Auto (system), light, dark via CSS variables
 - **Keyboard Shortcuts** — Built-in `Ctrl+/` help modal with all shortcuts listed
@@ -292,6 +293,64 @@ Override per-instance in Blade:
     'rate_limit' => [
         'max_uploads' => 30,
         'per_minutes' => 1,
+    ],
+],
+```
+
+### Upload Security & Permissions
+
+```php
+'media' => [
+    // Upload directory organization
+    'directory_strategy' => env('TIPTAP_MEDIA_DIR_STRATEGY', 'default'),
+    // 'default' — tiptap-media/YYYY/MM/
+    // 'user'    — tiptap-media/user-{id}/YYYY/MM/
+    // 'custom'  — use directory_resolver callback
+
+    'directory_resolver' => null,
+    // Example:  fn($basePath, $datePath, $user) => "{$basePath}/team-{$user->team_id}/{$datePath}"
+
+    // Permission gate (Laravel Gate name, null = no gate check)
+    'permissions' => [
+        'gate'  => env('TIPTAP_UPLOAD_GATE', null),    // e.g. 'upload-media'
+        'roles' => [],                                   // e.g. ['admin', 'editor']
+        // Compatible with Spatie/Permission (hasAnyRole) or a simple 'role' attribute
+    ],
+
+    // File extensions that will always be rejected
+    'blocked_extensions' => [
+        'php', 'php3', 'php4', 'php5', 'php7', 'php8', 'phtml', 'phar',
+        'exe', 'bat', 'cmd', 'com', 'msi', 'dll',
+        'sh', 'bash', 'csh', 'ksh', 'zsh',
+        'js', 'jsx', 'ts', 'tsx',
+        'py', 'pyc', 'rb', 'pl', 'cgi',
+        'asp', 'aspx', 'jsp', 'jspx',
+        'htaccess', 'htpasswd',
+        'env', 'ini', 'yml', 'yaml', 'toml',
+    ],
+],
+```
+
+#### Setting up Gate-based permissions
+
+```php
+// In AuthServiceProvider or a Gate definition
+Gate::define('upload-media', function ($user) {
+    return $user->is_editor || $user->is_admin;
+});
+```
+
+```env
+TIPTAP_UPLOAD_GATE=upload-media
+```
+
+#### Role-based permissions (Spatie/Permission)
+
+```php
+// config/tiptap-editor.php
+'media' => [
+    'permissions' => [
+        'roles' => ['admin', 'editor', 'contributor'],
     ],
 ],
 ```
@@ -640,6 +699,34 @@ MIT License. See [LICENSE](LICENSE) for details.
 ---
 
 ## Changelog
+
+### v1.1.0
+
+**Media Library**
+- Browse and reuse previously uploaded images/videos from a new "Library" tab in Image and Video modals
+- Searchable grid with pagination, click-to-select, and instant insert
+- Integrated with existing browse API (`GET /tiptap-editor/media/browse`)
+
+**Upload Security & Permissions**
+- Gate-based and role-based upload authorization (compatible with Spatie/Permission)
+- Configurable upload directory strategy: `default`, `user` (per-user folders), `custom` (resolver callback)
+- Blocked file extensions list (PHP, EXE, shell scripts, etc.) — prevents upload of dangerous files
+- Double-extension detection (e.g., `malware.php.jpg`)
+- File content scanning: detects embedded PHP tags, `eval()`, `exec()`, polyglot attack patterns
+- MIME type mismatch detection (compares detected vs. declared MIME types)
+- Null byte filename protection
+- Filename sanitization (path traversal prevention, length limits)
+
+**SVG Security**
+- SVG file sanitization on upload: strips `<script>`, `on*` event handlers, `javascript:` URIs, `<foreignObject>`, external `<use>` references
+
+**CSS Injection Prevention**
+- Color values in highlight and text style marks are now validated against safe patterns (hex, rgb/hsl, named colors)
+
+**Other**
+- TrailingNode extension (auto-appends paragraph after block nodes)
+- Configurable editor height, scroll, and CSS resize handle
+- Edit-after-insert for all block tools (Card, Gallery, Alert, Table)
 
 ### v1.0.0 – 2026-02-27
 

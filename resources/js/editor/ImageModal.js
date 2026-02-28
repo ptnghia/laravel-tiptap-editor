@@ -21,6 +21,10 @@ export class ImageModal {
     this._bs = null;        // Bootstrap Modal instance
     this._pendingFile = null;
     this._editMode = false;
+    this._libraryLoaded = false;
+    this._libraryPage = 1;
+    this._libraryHasMore = false;
+    this._selectedLibraryItem = null;
     this._build();
   }
 
@@ -100,6 +104,12 @@ export class ImageModal {
                   <i class="bi bi-link-45deg me-1"></i>URL
                 </button>
               </li>
+              <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link py-1 px-3 tiptap-img-tab-btn fs-sm"
+                        data-tab="library" role="tab">
+                  <i class="bi bi-images me-1"></i>Library
+                </button>
+              </li>
             </ul>
 
             <!-- Upload panel -->
@@ -124,6 +134,26 @@ export class ImageModal {
               <input type="url" class="form-control form-control-sm tiptap-img-url-input"
                      placeholder="https://example.com/image.jpg">
               <div class="form-text">Enter a direct link to an image file.</div>
+            </div>
+
+            <!-- Library panel -->
+            <div class="tiptap-img-panel d-none" data-panel="library">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="input-group input-group-sm flex-grow-1">
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
+                  <input type="text" class="form-control tiptap-img-library-search"
+                         placeholder="Search images...">
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary tiptap-img-library-refresh"
+                        title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+              </div>
+              <div class="tiptap-img-library-grid" style="max-height:220px;overflow-y:auto;"></div>
+              <div class="tiptap-img-library-status text-center py-2 small text-muted d-none"></div>
+              <div class="text-center mt-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary tiptap-img-library-more d-none">
+                  Load more
+                </button>
+              </div>
             </div>
 
             <!-- ─── Common fields ─── -->
@@ -287,8 +317,16 @@ export class ImageModal {
         $$('.tiptap-img-panel').forEach((p) => p.classList.add('d-none'));
         btn.classList.add('active');
         $(`[data-panel="${btn.dataset.tab}"]`).classList.remove('d-none');
+
+        // Auto-load library on first switch
+        if (btn.dataset.tab === 'library' && !this._libraryLoaded) {
+          this._loadLibrary();
+        }
       });
     });
+
+    /* ── Library ── */
+    this._bindLibraryEvents();
 
     /* ── File input (the hidden overlay on the dropzone) ── */
     const fileInput = $('.tiptap-img-file-input');
@@ -466,6 +504,11 @@ export class ImageModal {
           // Fallback: base64
           src = await this._toBase64(this._pendingFile);
         }
+      } else if (activeTab === 'library' && this._selectedLibraryItem) {
+        src     = this._selectedLibraryItem.url;
+        mediaId = this._selectedLibraryItem.id || null;
+        imgW    = this._selectedLibraryItem.width || null;
+        imgH    = this._selectedLibraryItem.height || null;
       } else {
         src = $('.tiptap-img-url-input').value.trim();
       }
@@ -531,12 +574,136 @@ export class ImageModal {
     });
   }
 
+  /* ──────────────── Media Library ──────────────── */
+
+  _bindLibraryEvents() {
+    const $ = (sel) => this._modal.querySelector(sel);
+
+    // Search
+    let searchTimer = null;
+    $('.tiptap-img-library-search')?.addEventListener('input', (e) => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        this._libraryPage = 1;
+        this._loadLibrary(e.target.value.trim());
+      }, 300);
+    });
+
+    // Refresh
+    $('.tiptap-img-library-refresh')?.addEventListener('click', () => {
+      this._libraryPage = 1;
+      this._libraryLoaded = false;
+      const search = $('.tiptap-img-library-search')?.value?.trim() || '';
+      this._loadLibrary(search);
+    });
+
+    // Load more
+    $('.tiptap-img-library-more')?.addEventListener('click', () => {
+      this._libraryPage++;
+      const search = $('.tiptap-img-library-search')?.value?.trim() || '';
+      this._loadLibrary(search, true);
+    });
+  }
+
+  async _loadLibrary(search = '', append = false) {
+    const browseUrl = this.toolbar._getBrowseUrl();
+    if (!browseUrl) {
+      this._showLibraryStatus('Media library not available');
+      return;
+    }
+
+    const grid = this._modal.querySelector('.tiptap-img-library-grid');
+    const moreBtn = this._modal.querySelector('.tiptap-img-library-more');
+    const status = this._modal.querySelector('.tiptap-img-library-status');
+
+    if (!append) {
+      grid.innerHTML = '<div class="text-center py-3"><span class="spinner-border spinner-border-sm"></span></div>';
+    }
+
+    try {
+      const params = new URLSearchParams({ type: 'image', page: this._libraryPage });
+      if (search) params.set('search', search);
+
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      const response = await fetch(`${browseUrl}?${params}`, {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const json = await response.json();
+
+      const items = json.data || [];
+      const pagination = json.pagination || {};
+
+      if (!append) grid.innerHTML = '';
+
+      if (items.length === 0 && !append) {
+        this._showLibraryStatus('No images found');
+        moreBtn?.classList.add('d-none');
+        return;
+      }
+
+      status?.classList.add('d-none');
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'tiptap-img-library-item';
+        card.dataset.url = item.url;
+        card.dataset.alt = item.alt || '';
+        card.dataset.title = item.title || '';
+        card.title = item.filename || '';
+
+        const img = document.createElement('img');
+        img.src = item.thumbnail || item.url;
+        img.alt = item.alt || item.filename || '';
+        img.loading = 'lazy';
+        card.appendChild(img);
+
+        const name = document.createElement('span');
+        name.className = 'tiptap-img-library-name';
+        name.textContent = item.filename || '';
+        card.appendChild(name);
+
+        card.addEventListener('click', () => {
+          grid.querySelectorAll('.tiptap-img-library-item').forEach(el =>
+            el.classList.remove('selected'));
+          card.classList.add('selected');
+          this._selectedLibraryItem = item;
+          this._updatePreview(item.url);
+
+          // Auto-fill alt/title
+          const altInput = this._modal.querySelector('.tiptap-img-alt-input');
+          if (altInput && !altInput.value && item.alt) altInput.value = item.alt;
+        });
+
+        grid.appendChild(card);
+      });
+
+      this._libraryHasMore = pagination.current_page < pagination.last_page;
+      moreBtn?.classList.toggle('d-none', !this._libraryHasMore);
+      this._libraryLoaded = true;
+    } catch (err) {
+      console.error('[TiptapEditor] Library load error:', err);
+      if (!append) grid.innerHTML = '';
+      this._showLibraryStatus('Failed to load media library');
+    }
+  }
+
+  _showLibraryStatus(msg) {
+    const status = this._modal.querySelector('.tiptap-img-library-status');
+    if (status) {
+      status.textContent = msg;
+      status.classList.remove('d-none');
+    }
+  }
+
   _reset() {
     const $ = (sel) => this._modal.querySelector(sel);
     const $$ = (sel) => this._modal.querySelectorAll(sel);
 
     this._pendingFile = null;
     this._editMode    = false;
+    this._selectedLibraryItem = null;
 
     // Clear file input
     const fi = $('.tiptap-img-file-input');

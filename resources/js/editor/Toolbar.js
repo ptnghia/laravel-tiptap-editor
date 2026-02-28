@@ -714,6 +714,20 @@ export default class Toolbar {
   }
 
   /**
+   * Get the media browse URL from config or meta tag.
+   * @private
+   * @returns {string|null}
+   */
+  _getBrowseUrl() {
+    const wrapper = this.element.closest('[data-tiptap-editor]');
+    const configUrl = wrapper?.getAttribute('data-browse-url');
+    if (configUrl) return configUrl;
+
+    const meta = document.querySelector('meta[name="tiptap-browse-url"]')?.content;
+    return meta || null;
+  }
+
+  /**
    * Upload a file to the server.
    * @private
    * @param {File} file

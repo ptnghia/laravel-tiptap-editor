@@ -10,6 +10,7 @@
     data-tiptap-editor
     data-config="{{ json_encode($editorConfig()) }}"
     data-upload-url="{{ route('tiptap-editor.media.upload') }}"
+    data-browse-url="{{ route('tiptap-editor.media.browse') }}"
     @if($disabled) data-disabled @endif
 >
     {{-- Toolbar --}}

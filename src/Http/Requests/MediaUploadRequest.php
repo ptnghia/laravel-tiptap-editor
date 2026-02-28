@@ -5,15 +5,47 @@ declare(strict_types=1);
 namespace Suspended\TiptapEditor\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
 
 class MediaUploadRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     *
+     * Checks gate and role-based permissions from config.
      */
     public function authorize(): bool
     {
-        return true; // Auth handled by middleware in routes
+        $permissions = config('tiptap-editor.media.permissions', []);
+
+        // Gate check
+        $gate = $permissions['gate'] ?? null;
+        if ($gate && ! Gate::allows($gate)) {
+            return false;
+        }
+
+        // Role check (compatible with Spatie/Permission or any hasRole method)
+        $roles = $permissions['roles'] ?? [];
+        if (! empty($roles) && $this->user()) {
+            if (method_exists($this->user(), 'hasAnyRole')) {
+                return $this->user()->hasAnyRole($roles);
+            }
+            if (method_exists($this->user(), 'hasRole')) {
+                foreach ($roles as $role) {
+                    if ($this->user()->hasRole($role)) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            // Fallback: check a 'role' attribute on the user model
+            if (isset($this->user()->role)) {
+                return in_array($this->user()->role, $roles, true);
+            }
+        }
+
+        return true;
     }
 
     /**

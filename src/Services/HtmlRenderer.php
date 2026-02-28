@@ -531,7 +531,10 @@ class HtmlRenderer
      */
     protected function renderHighlight(string $html, array $attrs): string
     {
-        $color = isset($attrs['color']) ? ' style="background-color: ' . e($attrs['color']) . '"' : '';
+        $color = '';
+        if (isset($attrs['color']) && $this->isValidCssColor($attrs['color'])) {
+            $color = ' style="background-color: ' . e($attrs['color']) . '"';
+        }
 
         return "<mark{$color}>{$html}</mark>";
     }
@@ -543,8 +546,38 @@ class HtmlRenderer
      */
     protected function renderTextStyle(string $html, array $attrs): string
     {
-        $color = isset($attrs['color']) ? ' style="color: ' . e($attrs['color']) . '"' : '';
+        $color = '';
+        if (isset($attrs['color']) && $this->isValidCssColor($attrs['color'])) {
+            $color = ' style="color: ' . e($attrs['color']) . '"';
+        }
 
         return "<span{$color}>{$html}</span>";
+    }
+
+    /**
+     * Validate a CSS color value to prevent CSS injection.
+     *
+     * Allows: hex (#fff, #ffffff, #ffffffff), rgb/rgba/hsl/hsla functions, named colors.
+     */
+    protected function isValidCssColor(string $value): bool
+    {
+        $value = trim($value);
+
+        // Hex colors: #RGB, #RRGGBB, #RRGGBBAA
+        if (preg_match('/^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/', $value)) {
+            return true;
+        }
+
+        // rgb/rgba/hsl/hsla functions (only digits, commas, dots, spaces, %)
+        if (preg_match('/^(rgb|rgba|hsl|hsla)\(\s*[\d\s,%.\/]+\s*\)$/', $value)) {
+            return true;
+        }
+
+        // Named CSS colors (only alphabetic characters, max 30 chars)
+        if (preg_match('/^[a-zA-Z]{1,30}$/', $value)) {
+            return true;
+        }
+
+        return false;
     }
 }

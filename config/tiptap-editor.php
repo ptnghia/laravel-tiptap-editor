@@ -148,6 +148,72 @@ return [
             'video/mp4',
             'video/webm',
         ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Upload Directory Strategy
+        |----------------------------------------------------------------------
+        |
+        | Controls how upload directories are organized:
+        |
+        |  'default'  – {path}/{Y/m}/{uuid}.ext (all uploads in shared dir)
+        |  'user'     – {path}/user-{user_id}/{Y/m}/{uuid}.ext (per-user dirs)
+        |  'custom'   – uses the 'directory_resolver' callback (see below)
+        |
+        */
+        'directory_strategy' => env('TIPTAP_MEDIA_DIR_STRATEGY', 'default'),
+
+        /*
+        |----------------------------------------------------------------------
+        | Custom Directory Resolver (used when directory_strategy = 'custom')
+        |----------------------------------------------------------------------
+        |
+        | A callable class or closure that receives the authenticated user
+        | and returns a string path prefix. Example:
+        |
+        |  'directory_resolver' => \App\Services\MediaPathResolver::class,
+        |
+        |  That class must implement __invoke(?\Illuminate\Contracts\Auth\Authenticatable $user): string
+        |
+        */
+        'directory_resolver' => null,
+
+        /*
+        |----------------------------------------------------------------------
+        | Upload Permissions
+        |----------------------------------------------------------------------
+        |
+        | Controls who can upload files to the editor.
+        |
+        |  'policy'   – null (anyone authenticated), or a Gate/Policy name
+        |  'roles'    – Array of role names allowed to upload (requires
+        |               Spatie\Permission or model->hasRole()). Empty = no check.
+        |  'gate'     – A Laravel Gate ability name. If set, only users
+        |               passing this gate may upload. Example: 'tiptap.upload'
+        |
+        */
+        'permissions' => [
+            'gate' => env('TIPTAP_UPLOAD_GATE', null),
+            'roles' => [], // e.g. ['admin', 'editor']
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Dangerous File Blocking
+        |----------------------------------------------------------------------
+        |
+        | Extra safety: block specific file extensions regardless of MIME.
+        | Prevents polyglot attacks (e.g. file.php.jpg with PHP payload).
+        |
+        */
+        'blocked_extensions' => [
+            'php', 'phtml', 'php3', 'php4', 'php5', 'php7', 'phps', 'phar',
+            'exe', 'bat', 'cmd', 'sh', 'bash', 'com', 'msi', 'dll',
+            'js', 'vbs', 'wsf', 'wsh', 'ps1', 'cgi', 'pl', 'py',
+            'jsp', 'asp', 'aspx', 'htaccess', 'htpasswd',
+            'svg', // SVG can contain embedded scripts; use image/svg+xml MIME check
+        ],
+
         'image_sizes' => [
             'thumbnail' => [150, 150],
             'medium' => [600, null],   // null = auto height

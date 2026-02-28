@@ -63,6 +63,37 @@ class ValidateMediaUpload
             ], Response::HTTP_REQUEST_ENTITY_TOO_LARGE);
         }
 
+        // Validate file extension against blocked list
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $extension = strtolower($file->getClientOriginalExtension());
+            $blockedExtensions = (array) config('tiptap-editor.media.blocked_extensions', []);
+
+            if (in_array($extension, $blockedExtensions, true)) {
+                return new JsonResponse([
+                    'message' => 'File type is not allowed.',
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
+            // MIME type / extension consistency check
+            $detectedMime = $file->getMimeType();
+            $clientMime = $file->getClientMimeType();
+
+            if ($detectedMime && $clientMime && $this->isMimeMismatch($detectedMime, $clientMime)) {
+                return new JsonResponse([
+                    'message' => 'File type mismatch detected.',
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
+            // Null byte in filename check
+            $originalName = $file->getClientOriginalName();
+            if (str_contains($originalName, "\0")) {
+                return new JsonResponse([
+                    'message' => 'Invalid filename.',
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+        }
+
         $response = $next($request);
 
         // Add rate limit headers
@@ -73,6 +104,24 @@ class ValidateMediaUpload
         );
 
         return $response;
+    }
+
+    /**
+     * Check if detected MIME type and client MIME type are inconsistent.
+     */
+    protected function isMimeMismatch(string $detected, string $client): bool
+    {
+        // Get the general type (image, video, application, etc.)
+        $detectedType = explode('/', $detected)[0] ?? '';
+        $clientType = explode('/', $client)[0] ?? '';
+
+        // Allow application/octet-stream as it's a fallback
+        if ($detected === 'application/octet-stream' || $client === 'application/octet-stream') {
+            return false;
+        }
+
+        // Flag mismatch if general types differ
+        return $detectedType !== $clientType;
     }
 
     /**

@@ -24,6 +24,10 @@ export class VideoModal {
     this._bs = null;
     this._editMode = false;
     this._pendingFile = null;
+    this._libraryLoaded = false;
+    this._libraryPage = 1;
+    this._libraryHasMore = false;
+    this._selectedLibraryItem = null;
     this._build();
   }
 
@@ -113,6 +117,12 @@ export class VideoModal {
                   <i class="bi bi-upload me-1"></i>Upload
                 </button>
               </li>
+              <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link py-1 px-3 tiptap-video-tab-btn fs-sm"
+                        data-tab="library" role="tab">
+                  <i class="bi bi-collection-play me-1"></i>Library
+                </button>
+              </li>
             </ul>
 
             <!-- URL panel -->
@@ -141,6 +151,26 @@ export class VideoModal {
                        style="position:absolute;inset:0;opacity:0;cursor:pointer">
               </div>
               <div class="form-text mt-1">Accepted formats: MP4, WebM</div>
+            </div>
+
+            <!-- Library panel -->
+            <div class="tiptap-video-panel d-none" data-panel="library">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="input-group input-group-sm flex-grow-1">
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
+                  <input type="text" class="form-control tiptap-video-library-search"
+                         placeholder="Search videos...">
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary tiptap-video-library-refresh"
+                        title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+              </div>
+              <div class="tiptap-video-library-grid" style="max-height:220px;overflow-y:auto;"></div>
+              <div class="tiptap-video-library-status text-center py-2 small text-muted d-none"></div>
+              <div class="text-center mt-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary tiptap-video-library-more d-none">
+                  Load more
+                </button>
+              </div>
             </div>
 
             <!-- ─── Common fields ─── -->
@@ -273,8 +303,18 @@ export class VideoModal {
   _bindEvents() {
     // Tabs
     this._modal.querySelectorAll('.tiptap-video-tab-btn').forEach((btn) => {
-      btn.addEventListener('click', () => this._switchTab(btn.dataset.tab));
+      btn.addEventListener('click', () => {
+        this._switchTab(btn.dataset.tab);
+
+        // Auto-load library on first switch
+        if (btn.dataset.tab === 'library' && !this._libraryLoaded) {
+          this._loadLibrary();
+        }
+      });
     });
+
+    // Library events
+    this._bindLibraryEvents();
 
     // URL input — detect provider on blur/input
     const urlInput = this._modal.querySelector('.tiptap-video-url-input');
@@ -354,6 +394,7 @@ export class VideoModal {
   _reset() {
     this._editMode = false;
     this._pendingFile = null;
+    this._selectedLibraryItem = null;
 
     this._modal.querySelector('.tiptap-video-url-input').value = '';
     this._modal.querySelector('.tiptap-video-title-input').value = '';
@@ -530,7 +571,12 @@ export class VideoModal {
 
     const activeTab = this._modal.querySelector('.tiptap-video-tab-btn.active')?.dataset.tab || 'url';
 
-    if (activeTab === 'upload' && this._pendingFile) {
+    if (activeTab === 'library' && this._selectedLibraryItem) {
+      // Library selection
+      url = this._selectedLibraryItem.url;
+      provider = 'mp4';
+      videoId = url;
+    } else if (activeTab === 'upload' && this._pendingFile) {
       // Upload file to server
       try {
         const uploadUrl = this.toolbar._getUploadUrl();
@@ -618,5 +664,118 @@ export class VideoModal {
     }
 
     this._bs.hide();
+  }
+
+  /* ──────────────── Media Library ──────────────── */
+
+  _bindLibraryEvents() {
+    const $ = (sel) => this._modal.querySelector(sel);
+
+    let searchTimer = null;
+    $('.tiptap-video-library-search')?.addEventListener('input', (e) => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        this._libraryPage = 1;
+        this._loadLibrary(e.target.value.trim());
+      }, 300);
+    });
+
+    $('.tiptap-video-library-refresh')?.addEventListener('click', () => {
+      this._libraryPage = 1;
+      this._libraryLoaded = false;
+      const search = $('.tiptap-video-library-search')?.value?.trim() || '';
+      this._loadLibrary(search);
+    });
+
+    $('.tiptap-video-library-more')?.addEventListener('click', () => {
+      this._libraryPage++;
+      const search = $('.tiptap-video-library-search')?.value?.trim() || '';
+      this._loadLibrary(search, true);
+    });
+  }
+
+  async _loadLibrary(search = '', append = false) {
+    const browseUrl = this.toolbar._getBrowseUrl();
+    if (!browseUrl) {
+      this._showLibraryStatus('Media library not available');
+      return;
+    }
+
+    const grid = this._modal.querySelector('.tiptap-video-library-grid');
+    const moreBtn = this._modal.querySelector('.tiptap-video-library-more');
+    const status = this._modal.querySelector('.tiptap-video-library-status');
+
+    if (!append) {
+      grid.innerHTML = '<div class="text-center py-3"><span class="spinner-border spinner-border-sm"></span></div>';
+    }
+
+    try {
+      const params = new URLSearchParams({ type: 'video', page: this._libraryPage });
+      if (search) params.set('search', search);
+
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      const response = await fetch(`${browseUrl}?${params}`, {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const json = await response.json();
+
+      const items = json.data || [];
+      const pagination = json.pagination || {};
+
+      if (!append) grid.innerHTML = '';
+
+      if (items.length === 0 && !append) {
+        this._showLibraryStatus('No videos found');
+        moreBtn?.classList.add('d-none');
+        return;
+      }
+
+      status?.classList.add('d-none');
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'tiptap-video-library-item';
+        card.dataset.url = item.url;
+        card.title = item.filename || '';
+
+        const icon = document.createElement('div');
+        icon.className = 'tiptap-video-library-icon';
+        icon.innerHTML = '<i class="bi bi-play-btn-fill fs-4"></i>';
+        card.appendChild(icon);
+
+        const name = document.createElement('span');
+        name.className = 'tiptap-video-library-name';
+        name.textContent = item.filename || '';
+        card.appendChild(name);
+
+        card.addEventListener('click', () => {
+          grid.querySelectorAll('.tiptap-video-library-item').forEach(el =>
+            el.classList.remove('selected'));
+          card.classList.add('selected');
+          this._selectedLibraryItem = item;
+          this._showPreview(item.url, 'mp4');
+        });
+
+        grid.appendChild(card);
+      });
+
+      this._libraryHasMore = pagination.current_page < pagination.last_page;
+      moreBtn?.classList.toggle('d-none', !this._libraryHasMore);
+      this._libraryLoaded = true;
+    } catch (err) {
+      console.error('[TiptapEditor] Video library load error:', err);
+      if (!append) grid.innerHTML = '';
+      this._showLibraryStatus('Failed to load media library');
+    }
+  }
+
+  _showLibraryStatus(msg) {
+    const status = this._modal.querySelector('.tiptap-video-library-status');
+    if (status) {
+      status.textContent = msg;
+      status.classList.remove('d-none');
+    }
   }
 }
