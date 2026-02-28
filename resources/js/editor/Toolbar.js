@@ -6,6 +6,8 @@
  */
 
 import { ImageModal } from './ImageModal.js';
+import { LinkModal } from './LinkModal.js';
+import { VideoModal } from './VideoModal.js';
 
 /**
  * Button definition: maps a toolbar button ID to its editor command, icon, and label.
@@ -318,8 +320,10 @@ export default class Toolbar {
     // Expose toolbar ref on editor so nodeViews (e.g. CustomImage) can access it
     this.editor._tiptapToolbar = this;
 
-    // Image insert/edit modal
+    // Modals
     this.imageModal = new ImageModal(this);
+    this.linkModal = new LinkModal(this);
+    this.videoModal = new VideoModal(this);
 
     this._render();
     this._bindEvents();
@@ -643,19 +647,11 @@ export default class Toolbar {
    */
   _handleLink() {
     if (this.editor.isActive('link')) {
-      this.editor.chain().focus().unsetLink().run();
-      return;
+      // Edit mode — open pre-populated modal
+      this.linkModal.open(this.editor.getAttributes('link'));
+    } else {
+      this.linkModal.open();
     }
-
-    const url = prompt('Enter URL:');
-    if (!url) return;
-
-    this.editor
-      .chain()
-      .focus()
-      .extendMarkRange('link')
-      .setLink({ href: url })
-      .run();
   }
 
   /**
@@ -749,14 +745,7 @@ export default class Toolbar {
    * @private
    */
   _handleVideo() {
-    const url = prompt('Enter video URL (YouTube, Vimeo, or MP4):');
-    if (!url) return;
-
-    this.editor
-      .chain()
-      .focus()
-      .insertCustomVideo({ url })
-      .run();
+    this.videoModal.open();
   }
 
   /**
@@ -870,6 +859,10 @@ export default class Toolbar {
   destroy() {
     this.imageModal?.destroy();
     this.imageModal = null;
+    this.linkModal?.destroy();
+    this.linkModal = null;
+    this.videoModal?.destroy();
+    this.videoModal = null;
     this.buttons.clear();
     this.element.innerHTML = '';
     if (this.editor) this.editor._tiptapToolbar = null;

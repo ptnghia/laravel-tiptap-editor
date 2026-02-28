@@ -126,7 +126,8 @@ class NodeRegistry
             'children' => [],
         ],
         'customVideo' => [
-            'attrs' => ['provider', 'videoId', 'url', 'title', 'width', 'height'],
+            'attrs' => ['provider', 'videoId', 'url', 'title', 'width', 'height',
+                        'caption', 'aspectRatio', 'alignment', 'widthStyle'],
             'children' => [],
         ],
         'gallery' => [

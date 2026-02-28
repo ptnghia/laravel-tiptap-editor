@@ -85,63 +85,101 @@ const CustomVideo = Node.create({
       height: {
         default: 315,
       },
+      caption: {
+        default: '',
+        parseHTML: (el) => {
+          const fig = el.querySelector('figcaption');
+          return fig?.textContent || '';
+        },
+      },
+      aspectRatio: {
+        default: '16x9',
+        parseHTML: (el) => {
+          const cls = el.className || '';
+          const match = cls.match(/ratio-(\d+x\d+)/);
+          return match ? match[1] : '16x9';
+        },
+      },
+      alignment: {
+        default: 'center',
+        parseHTML: (el) => el.getAttribute('data-alignment') || 'center',
+      },
+      widthStyle: {
+        default: null,
+        parseHTML: (el) => {
+          const style = el.getAttribute('style') || '';
+          const match = style.match(/width:\s*(\d+(?:\.\d+)?(?:px|%))/);
+          return match ? match[1] : null;
+        },
+      },
     };
   },
 
   parseHTML() {
     return [
       { tag: 'div[data-type="custom-video"]' },
+      { tag: 'figure[data-type="custom-video"]' },
       { tag: 'div.ratio.ratio-16x9' },
     ];
   },
 
   renderHTML({ node, HTMLAttributes }) {
-    const { provider, videoId, url, title } = node.attrs;
+    const { provider, videoId, url, title, aspectRatio, alignment, widthStyle, caption } = node.attrs;
+
+    const ratio = aspectRatio || '16x9';
+    const alignClass = alignment === 'left' ? 'text-start' : alignment === 'right' ? 'text-end' : 'text-center';
+    const styleAttr = widthStyle ? `width:${widthStyle}` : '';
+    const figureClass = `tiptap-video-figure ${alignClass}`;
 
     const wrapperAttrs = mergeAttributes(HTMLAttributes, {
       'data-type': 'custom-video',
       'data-provider': provider,
       'data-video-id': videoId || '',
       'data-url': url || '',
-      class: 'ratio ratio-16x9',
+      'data-alignment': alignment || 'center',
+      class: `ratio ratio-${ratio}`,
     });
 
+    // Build inner media element
+    let mediaEl;
     if (provider === 'mp4') {
-      return [
+      mediaEl = [
         'div',
         wrapperAttrs,
         [
           'video',
-          {
-            controls: 'true',
-            class: 'w-100',
-            title: title || '',
-          },
+          { controls: 'true', class: 'w-100', title: title || '' },
           ['source', { src: url || videoId || '', type: 'video/mp4' }],
+        ],
+      ];
+    } else {
+      const providerConfig = PROVIDERS[provider];
+      const embedSrc = providerConfig ? providerConfig.embedUrl(videoId) : '';
+      mediaEl = [
+        'div',
+        wrapperAttrs,
+        [
+          'iframe',
+          {
+            src: embedSrc,
+            title: title || '',
+            allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
+            allowfullscreen: 'true',
+            loading: 'lazy',
+            frameborder: '0',
+          },
         ],
       ];
     }
 
-    // Embed URL from provider
-    const providerConfig = PROVIDERS[provider];
-    const embedSrc = providerConfig ? providerConfig.embedUrl(videoId) : '';
+    // Wrap in figure with alignment/width
+    const figureAttrs = { class: figureClass };
+    if (styleAttr) figureAttrs.style = styleAttr;
 
-    return [
-      'div',
-      wrapperAttrs,
-      [
-        'iframe',
-        {
-          src: embedSrc,
-          title: title || '',
-          allow:
-            'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
-          allowfullscreen: 'true',
-          loading: 'lazy',
-          frameborder: '0',
-        },
-      ],
-    ];
+    if (caption) {
+      return ['figure', figureAttrs, mediaEl, ['figcaption', {}, caption]];
+    }
+    return ['figure', figureAttrs, mediaEl];
   },
 
   addCommands() {
@@ -164,10 +202,14 @@ const CustomVideo = Node.create({
           return commands.insertContent({
             type: this.name,
             attrs: {
-              provider: detected.provider,
-              videoId: detected.videoId,
+              provider: attrs.provider || detected.provider,
+              videoId: attrs.videoId || detected.videoId,
               url: attrs.url,
               title: attrs.title || '',
+              caption: attrs.caption || '',
+              aspectRatio: attrs.aspectRatio || '16x9',
+              alignment: attrs.alignment || 'center',
+              widthStyle: attrs.widthStyle || null,
             },
           });
         },
@@ -196,11 +238,21 @@ const CustomVideo = Node.create({
     return ({ node, editor, getPos }) => {
       const dom = document.createElement('div');
       dom.setAttribute('data-type', 'custom-video');
-      dom.className = 'ratio ratio-16x9 tiptap-video-wrapper';
       dom.contentEditable = 'false';
 
-      const { provider, videoId, url, title } = node.attrs;
-      dom.setAttribute('data-provider', provider);
+      const { provider, videoId, url, title, aspectRatio, alignment, widthStyle, caption } = node.attrs;
+      const ratio = aspectRatio || '16x9';
+
+      // Outer figure with alignment + width
+      const figure = document.createElement('figure');
+      figure.className = `tiptap-video-figure ${alignment === 'left' ? 'text-start' : alignment === 'right' ? 'text-end' : 'text-center'}`;
+      if (widthStyle) figure.style.width = widthStyle;
+
+      // Ratio wrapper
+      const ratioDiv = document.createElement('div');
+      ratioDiv.className = `ratio ratio-${ratio} tiptap-video-wrapper`;
+      ratioDiv.setAttribute('data-type', 'custom-video');
+      ratioDiv.setAttribute('data-provider', provider);
 
       if (provider === 'mp4') {
         const video = document.createElement('video');
@@ -211,7 +263,7 @@ const CustomVideo = Node.create({
         source.src = url || videoId || '';
         source.type = 'video/mp4';
         video.appendChild(source);
-        dom.appendChild(video);
+        ratioDiv.appendChild(video);
       } else {
         const iframe = document.createElement('iframe');
         const providerConfig = PROVIDERS[provider];
@@ -222,39 +274,27 @@ const CustomVideo = Node.create({
         iframe.allowFullscreen = true;
         iframe.loading = 'lazy';
         iframe.frameBorder = '0';
-        dom.appendChild(iframe);
+        ratioDiv.appendChild(iframe);
       }
 
-      // Double click to edit
+      figure.appendChild(ratioDiv);
+
+      // Caption
+      if (caption) {
+        const figcap = document.createElement('figcaption');
+        figcap.textContent = caption;
+        figure.appendChild(figcap);
+      }
+
+      dom.appendChild(figure);
+
+      // Double click to edit via modal
       dom.addEventListener('dblclick', (e) => {
         e.preventDefault();
         e.stopPropagation();
-
-        const newUrl = prompt('Video URL:', node.attrs.url || '');
-        if (!newUrl) return;
-
-        const detected = detectProvider(newUrl);
-        if (!detected) {
-          alert('Unsupported video URL. Supported: YouTube, Vimeo, MP4.');
-          return;
+        if (editor._tiptapToolbar?.videoModal) {
+          editor._tiptapToolbar.videoModal.open(node.attrs);
         }
-
-        const pos = getPos();
-        if (typeof pos !== 'number') return;
-
-        editor
-          .chain()
-          .focus()
-          .command(({ tr }) => {
-            tr.setNodeMarkup(pos, undefined, {
-              ...node.attrs,
-              provider: detected.provider,
-              videoId: detected.videoId,
-              url: newUrl,
-            });
-            return true;
-          })
-          .run();
       });
 
       return {
@@ -264,10 +304,21 @@ const CustomVideo = Node.create({
 
           const p = updatedNode.attrs.provider;
           const vid = updatedNode.attrs.videoId;
+          const r = updatedNode.attrs.aspectRatio || '16x9';
+          const al = updatedNode.attrs.alignment || 'center';
+          const ws = updatedNode.attrs.widthStyle;
+          const cap = updatedNode.attrs.caption || '';
 
           // Rebuild content
           dom.innerHTML = '';
-          dom.setAttribute('data-provider', p);
+
+          const newFigure = document.createElement('figure');
+          newFigure.className = `tiptap-video-figure ${al === 'left' ? 'text-start' : al === 'right' ? 'text-end' : 'text-center'}`;
+          if (ws) newFigure.style.width = ws;
+
+          const newRatio = document.createElement('div');
+          newRatio.className = `ratio ratio-${r} tiptap-video-wrapper`;
+          newRatio.setAttribute('data-provider', p);
 
           if (p === 'mp4') {
             const video = document.createElement('video');
@@ -277,7 +328,7 @@ const CustomVideo = Node.create({
             source.src = updatedNode.attrs.url || vid || '';
             source.type = 'video/mp4';
             video.appendChild(source);
-            dom.appendChild(video);
+            newRatio.appendChild(video);
           } else {
             const iframe = document.createElement('iframe');
             const config = PROVIDERS[p];
@@ -287,8 +338,18 @@ const CustomVideo = Node.create({
             iframe.allowFullscreen = true;
             iframe.loading = 'lazy';
             iframe.frameBorder = '0';
-            dom.appendChild(iframe);
+            newRatio.appendChild(iframe);
           }
+
+          newFigure.appendChild(newRatio);
+
+          if (cap) {
+            const figcap = document.createElement('figcaption');
+            figcap.textContent = cap;
+            newFigure.appendChild(figcap);
+          }
+
+          dom.appendChild(newFigure);
 
           return true;
         },

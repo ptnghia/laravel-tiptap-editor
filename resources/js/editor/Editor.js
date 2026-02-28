@@ -221,7 +221,7 @@ export default class TiptapEditor {
         Link.configure({
           openOnClick: false,
           HTMLAttributes: {
-            rel: 'noopener noreferrer',
+            rel: null,
           },
         })
       );

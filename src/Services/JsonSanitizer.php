@@ -162,6 +162,16 @@ class JsonSanitizer
             return in_array($value, ['_blank', '_self', '_parent', '_top'], true) ? $value : null;
         }
 
+        // aspectRatio: only specific values
+        if ($attrName === 'aspectRatio') {
+            return in_array($value, ['16x9', '4x3', '1x1', '21x9', '9x16'], true) ? $value : '16x9';
+        }
+
+        // alignment: limited values
+        if ($attrName === 'alignment') {
+            return in_array($value, ['left', 'center', 'right'], true) ? $value : 'center';
+        }
+
         // widthStyle: only allow "NNpx" or "NN%" patterns
         if ($attrName === 'widthStyle') {
             if (is_string($value) && preg_match('/^\d+(\.\d+)?(px|%)$/', trim($value))) {
@@ -171,7 +181,7 @@ class JsonSanitizer
         }
 
         // Boolean attributes
-        $boolAttributes = ['outline'];
+        $boolAttributes = ['outline', 'lightbox'];
         if (in_array($attrName, $boolAttributes, true)) {
             return (bool) $value;
         }
@@ -234,6 +244,23 @@ class JsonSanitizer
             // Sanitize link mark URLs
             if ($type === 'link' && isset($mark['attrs']['href'])) {
                 $mark['attrs']['href'] = $this->sanitizeUrl($mark['attrs']['href']);
+            }
+
+            // Sanitize link mark rel attribute
+            if ($type === 'link' && isset($mark['attrs']['rel'])) {
+                $allowedRelValues = ['noopener', 'noreferrer', 'nofollow', 'ugc', 'sponsored'];
+                $relParts = preg_split('/\s+/', $mark['attrs']['rel']);
+                $mark['attrs']['rel'] = implode(' ', array_intersect($relParts, $allowedRelValues));
+                if ($mark['attrs']['rel'] === '') {
+                    unset($mark['attrs']['rel']);
+                }
+            }
+
+            // Sanitize link mark target
+            if ($type === 'link' && isset($mark['attrs']['target'])) {
+                if (! in_array($mark['attrs']['target'], ['_blank', '_self', '_parent', '_top'], true)) {
+                    unset($mark['attrs']['target']);
+                }
             }
 
             return true;

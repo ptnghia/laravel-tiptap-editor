@@ -292,11 +292,11 @@ class HtmlRenderer
         }
 
         $alt     = e($attrs['alt'] ?? '');
-        $title   = isset($attrs['title'])  ? ' title="' . e($attrs['title'])  . '"' : '';
+        $title   = isset($attrs['title']) ? ' title="' . e($attrs['title'])  . '"' : '';
         $loading = ' loading="' . e($attrs['loading'] ?? 'lazy') . '"';
 
         // Integer pixel dimensions (from upload)
-        $width  = isset($attrs['width'])  && is_numeric($attrs['width'])  ? ' width="'  . (int) $attrs['width']  . '"' : '';
+        $width  = isset($attrs['width'])  && is_numeric($attrs['width']) ? ' width="'  . (int) $attrs['width']  . '"' : '';
         $height = isset($attrs['height']) && is_numeric($attrs['height']) ? ' height="' . (int) $attrs['height'] . '"' : '';
 
         // Alignment
@@ -348,34 +348,57 @@ class HtmlRenderer
         $provider = $attrs['provider'] ?? 'youtube';
         $videoId = e($attrs['videoId'] ?? '');
         $title = e($attrs['title'] ?? '');
+        $caption = e($attrs['caption'] ?? '');
 
+        // Aspect ratio
+        $allowedRatios = ['16x9', '4x3', '1x1', '21x9', '9x16'];
+        $rawRatio = $attrs['aspectRatio'] ?? '16x9';
+        $aspectRatio = in_array($rawRatio, $allowedRatios, true) ? $rawRatio : '16x9';
+        $ratioClass = "ratio-{$aspectRatio}";
+
+        // Alignment
+        $alignment = $attrs['alignment'] ?? 'center';
+        $alignClass = match ($alignment) {
+            'left' => 'text-start',
+            'right' => 'text-end',
+            default => 'text-center',
+        };
+
+        // Width style
+        $widthStyle = '';
+        if (! empty($attrs['widthStyle']) && preg_match('/^\d+(\.\d+)?(px|%)$/', $attrs['widthStyle'])) {
+            $widthStyle = 'width:' . e($attrs['widthStyle']);
+        }
+
+        $figureStyle = $widthStyle !== '' ? " style=\"{$widthStyle}\"" : '';
+
+        // Build inner media
+        $mediaHtml = '';
         if ($provider === 'mp4') {
             $url = e($attrs['url'] ?? $videoId);
-
-            return '<div class="ratio ratio-16x9">'
+            $mediaHtml = '<div class="ratio ' . $ratioClass . '">'
                 . "<video controls title=\"{$title}\">"
                 . "<source src=\"{$url}\" type=\"video/mp4\">"
                 . '</video></div>';
+        } else {
+            $videoProviders = config('tiptap-editor.video_providers', []);
+            $embedUrl = '';
+            if (isset($videoProviders[$provider]['embed_url']) && $videoId !== '') {
+                $embedUrl = str_replace('{id}', $videoId, $videoProviders[$provider]['embed_url']);
+            }
+            if ($embedUrl === '') {
+                return '';
+            }
+            $embedUrl = e($embedUrl);
+            $mediaHtml = '<div class="ratio ' . $ratioClass . '">'
+                . "<iframe src=\"{$embedUrl}\" title=\"{$title}\""
+                . ' allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"'
+                . ' allowfullscreen loading="lazy"></iframe></div>';
         }
 
-        // Build embed URL from whitelisted providers
-        $videoProviders = config('tiptap-editor.video_providers', []);
-        $embedUrl = '';
+        $captionHtml = $caption !== '' ? "<figcaption>{$caption}</figcaption>" : '';
 
-        if (isset($videoProviders[$provider]['embed_url']) && $videoId !== '') {
-            $embedUrl = str_replace('{id}', $videoId, $videoProviders[$provider]['embed_url']);
-        }
-
-        if ($embedUrl === '') {
-            return ''; // Unknown or missing provider
-        }
-
-        $embedUrl = e($embedUrl);
-
-        return '<div class="ratio ratio-16x9">'
-            . "<iframe src=\"{$embedUrl}\" title=\"{$title}\""
-            . ' allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"'
-            . ' allowfullscreen loading="lazy"></iframe></div>';
+        return "<figure class=\"tiptap-video-figure {$alignClass}\"{$figureStyle}>{$mediaHtml}{$captionHtml}</figure>";
     }
 
     /**
@@ -478,10 +501,27 @@ class HtmlRenderer
     protected function renderLink(string $html, array $attrs): string
     {
         $href = e($attrs['href'] ?? '#');
-        $target = isset($attrs['target']) ? ' target="' . e($attrs['target']) . '"' : '';
-        $rel = $target !== '' ? ' rel="noopener noreferrer"' : '';
+        $target = isset($attrs['target']) && $attrs['target'] !== '' ? ' target="' . e($attrs['target']) . '"' : '';
 
-        return "<a href=\"{$href}\"{$target}{$rel}>{$html}</a>";
+        // Build rel: always add noopener if _blank
+        $relParts = [];
+        if ($target !== '') {
+            $relParts[] = 'noopener';
+        }
+        if (isset($attrs['rel']) && $attrs['rel'] !== '') {
+            $allowedRel = ['noopener', 'noreferrer', 'nofollow', 'ugc', 'sponsored'];
+            foreach (preg_split('/\s+/', $attrs['rel']) as $r) {
+                if (in_array($r, $allowedRel, true) && ! in_array($r, $relParts, true)) {
+                    $relParts[] = $r;
+                }
+            }
+        }
+        $rel = ! empty($relParts) ? ' rel="' . e(implode(' ', $relParts)) . '"' : '';
+
+        $title = isset($attrs['title']) && $attrs['title'] !== '' ? ' title="' . e($attrs['title']) . '"' : '';
+        $class = isset($attrs['class']) && $attrs['class'] !== '' ? ' class="' . e($attrs['class']) . '"' : '';
+
+        return "<a href=\"{$href}\"{$target}{$rel}{$title}{$class}>{$html}</a>";
     }
 
     /**

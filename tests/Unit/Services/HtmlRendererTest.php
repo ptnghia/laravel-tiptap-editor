@@ -110,7 +110,7 @@ class HtmlRendererTest extends TestCase
         $html = $this->renderer->render($json);
         $this->assertStringContainsString('href="https://example.com"', $html);
         $this->assertStringContainsString('target="_blank"', $html);
-        $this->assertStringContainsString('rel="noopener noreferrer"', $html);
+        $this->assertStringContainsString('rel="noopener"', $html);
     }
 
     public function test_renders_json_string_input(): void
