@@ -80,6 +80,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Editor Dimensions
+    |--------------------------------------------------------------------------
+    |
+    | Configure the editor content area height and resize behavior.
+    |
+    | - minHeight: Minimum height of the editor (CSS value, e.g. '200px')
+    | - maxHeight: Maximum height before scrollbar appears (e.g. '500px', '60vh')
+    | - height:    Fixed default height (e.g. '400px'). Overrides minHeight visually.
+    | - resizable: Allow user to drag-resize the editor vertically (true/false)
+    |
+    */
+
+    'editor' => [
+        'minHeight' => '200px',
+        'maxHeight' => '500px',
+        'height' => null,
+        'resizable' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Toolbar Configuration
     |--------------------------------------------------------------------------
     |

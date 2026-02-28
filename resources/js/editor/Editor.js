@@ -29,6 +29,7 @@ import BootstrapButton from './extensions/BootstrapButton';
 import CustomImage from './extensions/CustomImage';
 import CustomVideo from './extensions/CustomVideo';
 import { Gallery, GalleryImage } from './extensions/Gallery';
+import TrailingNode from './extensions/TrailingNode';
 import SlashCommands from './extensions/SlashCommands';
 import Toolbar from './Toolbar';
 import AiPanel from './AiPanel';
@@ -186,6 +187,9 @@ export default class TiptapEditor {
       this.openShortcuts();
     });
 
+    // Apply editor height/resize settings
+    this._applyEditorDimensions();
+
     // Sync initial content to hidden input
     this._syncToInput();
   }
@@ -331,6 +335,9 @@ export default class TiptapEditor {
         commands: this.config.slashCommands?.commands || null,
       }));
     }
+
+    // TrailingNode – always enabled to ensure users can click below the last block node
+    extensions.push(TrailingNode);
 
     return extensions;
   }
@@ -495,6 +502,79 @@ export default class TiptapEditor {
     if (configTheme && configTheme !== 'auto') {
       this.wrapper.setAttribute('data-theme', configTheme);
     }
+  }
+
+  /**
+   * Apply editor height, max-height, and resize settings from config.
+   *
+   * Config options:
+   *  - minHeight: CSS value (e.g. '200px', '10rem') – minimum editor height
+   *  - maxHeight: CSS value (e.g. '500px', '60vh') – enables scrollbar when exceeded
+   *  - height: CSS value (e.g. '400px') – fixed default height
+   *  - resizable: boolean – allows user to drag-resize the editor vertically
+   *
+   * @private
+   */
+  _applyEditorDimensions() {
+    const { minHeight, maxHeight, height, resizable } = this.config;
+
+    if (minHeight) {
+      this.wrapper.style.setProperty('--tiptap-min-height', minHeight);
+    }
+
+    if (maxHeight) {
+      this.contentElement.style.maxHeight = maxHeight;
+      this.contentElement.style.overflowY = 'auto';
+    }
+
+    if (height) {
+      this.contentElement.style.height = height;
+      this.contentElement.style.overflowY = 'auto';
+    }
+
+    if (resizable) {
+      this._addResizeHandle();
+    }
+  }
+
+  /**
+   * Add a drag handle at the bottom of the editor for vertical resizing.
+   * @private
+   */
+  _addResizeHandle() {
+    const handle = document.createElement('div');
+    handle.className = 'tiptap-editor__resize-handle';
+    handle.title = 'Drag to resize';
+    this.wrapper.appendChild(handle);
+
+    let startY = 0;
+    let startHeight = 0;
+
+    const onMouseMove = (e) => {
+      const newHeight = startHeight + (e.clientY - startY);
+      const minH = parseInt(getComputedStyle(this.wrapper).getPropertyValue('--tiptap-min-height')) || 100;
+      if (newHeight >= minH) {
+        this.contentElement.style.height = newHeight + 'px';
+        this.contentElement.style.overflowY = 'auto';
+      }
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      this.wrapper.classList.remove('tiptap-editor--resizing');
+      document.body.style.userSelect = '';
+    };
+
+    handle.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      startY = e.clientY;
+      startHeight = this.contentElement.offsetHeight;
+      this.wrapper.classList.add('tiptap-editor--resizing');
+      document.body.style.userSelect = 'none';
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
   }
 
   /**

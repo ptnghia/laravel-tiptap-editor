@@ -3111,7 +3111,7 @@ class ae {
     return ys[e] = t, t.prototype.jsonID = e, t;
   }
 }
-class j {
+class J {
   /**
   @internal
   */
@@ -3122,13 +3122,13 @@ class j {
   Create a successful step result.
   */
   static ok(e) {
-    return new j(e, null);
+    return new J(e, null);
   }
   /**
   Create a failed step result.
   */
   static fail(e) {
-    return new j(null, e);
+    return new J(null, e);
   }
   /**
   Call [`Node.replace`](https://prosemirror.net/docs/ref/#model.Node.replace) with the given
@@ -3137,10 +3137,10 @@ class j {
   */
   static fromReplace(e, t, i, s) {
     try {
-      return j.ok(e.replace(t, i, s));
+      return J.ok(e.replace(t, i, s));
     } catch (r) {
       if (r instanceof ai)
-        return j.fail(r.message);
+        return J.fail(r.message);
       throw r;
     }
   }
@@ -3162,7 +3162,7 @@ class tt extends ae {
   }
   apply(e) {
     let t = e.slice(this.from, this.to), i = e.resolve(this.from), s = i.node(i.sharedDepth(this.to)), r = new S(Lr(t.content, (o, l) => !o.isAtom || !l.type.allowsMarkType(this.mark.type) ? o : o.mark(this.mark.addToSet(o.marks)), s), t.openStart, t.openEnd);
-    return j.fromReplace(e, this.from, this.to, r);
+    return J.fromReplace(e, this.from, this.to, r);
   }
   invert() {
     return new Le(this.from, this.to, this.mark);
@@ -3201,7 +3201,7 @@ class Le extends ae {
   }
   apply(e) {
     let t = e.slice(this.from, this.to), i = new S(Lr(t.content, (s) => s.mark(this.mark.removeFromSet(s.marks)), e), t.openStart, t.openEnd);
-    return j.fromReplace(e, this.from, this.to, i);
+    return J.fromReplace(e, this.from, this.to, i);
   }
   invert() {
     return new tt(this.from, this.to, this.mark);
@@ -3241,9 +3241,9 @@ class nt extends ae {
   apply(e) {
     let t = e.nodeAt(this.pos);
     if (!t)
-      return j.fail("No node at mark step's position");
+      return J.fail("No node at mark step's position");
     let i = t.type.create(t.attrs, null, this.mark.addToSet(t.marks));
-    return j.fromReplace(e, this.pos, this.pos + 1, new S(y.from(i), 0, t.isLeaf ? 0 : 1));
+    return J.fromReplace(e, this.pos, this.pos + 1, new S(y.from(i), 0, t.isLeaf ? 0 : 1));
   }
   invert(e) {
     let t = e.nodeAt(this.pos);
@@ -3285,9 +3285,9 @@ class At extends ae {
   apply(e) {
     let t = e.nodeAt(this.pos);
     if (!t)
-      return j.fail("No node at mark step's position");
+      return J.fail("No node at mark step's position");
     let i = t.type.create(t.attrs, null, this.mark.removeFromSet(t.marks));
-    return j.fromReplace(e, this.pos, this.pos + 1, new S(y.from(i), 0, t.isLeaf ? 0 : 1));
+    return J.fromReplace(e, this.pos, this.pos + 1, new S(y.from(i), 0, t.isLeaf ? 0 : 1));
   }
   invert(e) {
     let t = e.nodeAt(this.pos);
@@ -3324,7 +3324,7 @@ class G extends ae {
     super(), this.from = e, this.to = t, this.slice = i, this.structure = s;
   }
   apply(e) {
-    return this.structure && Xs(e, this.from, this.to) ? j.fail("Structure replace would overwrite content") : j.fromReplace(e, this.from, this.to, this.slice);
+    return this.structure && Xs(e, this.from, this.to) ? J.fail("Structure replace would overwrite content") : J.fromReplace(e, this.from, this.to, this.slice);
   }
   getMap() {
     return new me([this.from, this.to - this.from, this.slice.size]);
@@ -3374,12 +3374,12 @@ class Y extends ae {
   }
   apply(e) {
     if (this.structure && (Xs(e, this.from, this.gapFrom) || Xs(e, this.gapTo, this.to)))
-      return j.fail("Structure gap-replace would overwrite content");
+      return J.fail("Structure gap-replace would overwrite content");
     let t = e.slice(this.gapFrom, this.gapTo);
     if (t.openStart || t.openEnd)
-      return j.fail("Gap is not a flat range");
+      return J.fail("Gap is not a flat range");
     let i = this.slice.insertAt(this.insert, t.content);
-    return i ? j.fromReplace(e, this.from, this.to, i) : j.fail("Content does not fit in gap");
+    return i ? J.fromReplace(e, this.from, this.to, i) : J.fail("Content does not fit in gap");
   }
   getMap() {
     return new me([
@@ -4016,13 +4016,13 @@ class Ut extends ae {
   apply(e) {
     let t = e.nodeAt(this.pos);
     if (!t)
-      return j.fail("No node at attribute step's position");
+      return J.fail("No node at attribute step's position");
     let i = /* @__PURE__ */ Object.create(null);
     for (let r in t.attrs)
       i[r] = t.attrs[r];
     i[this.attr] = this.value;
     let s = t.type.create(i, null, t.marks);
-    return j.fromReplace(e, this.pos, this.pos + 1, new S(y.from(s), 0, t.isLeaf ? 0 : 1));
+    return J.fromReplace(e, this.pos, this.pos + 1, new S(y.from(s), 0, t.isLeaf ? 0 : 1));
   }
   getMap() {
     return me.empty;
@@ -4057,7 +4057,7 @@ class xn extends ae {
       t[s] = e.attrs[s];
     t[this.attr] = this.value;
     let i = e.type.create(t, e.content, e.marks);
-    return j.ok(i);
+    return J.ok(i);
   }
   getMap() {
     return me.empty;
@@ -5098,7 +5098,7 @@ function La(n, e, t) {
   }
   return t;
 }
-class W {
+class q {
   /**
   Create a plugin.
   */
@@ -5116,7 +5116,7 @@ const Ss = /* @__PURE__ */ Object.create(null);
 function Na(n) {
   return n in Ss ? n + "$" + ++Ss[n] : (Ss[n] = 0, n + "$");
 }
-class J {
+class K {
   /**
   Create a plugin key.
   */
@@ -9043,7 +9043,7 @@ function Ls(n, e, t = !0) {
   return e.altKey && (n = "Alt-" + n), e.ctrlKey && (n = "Ctrl-" + n), e.metaKey && (n = "Meta-" + n), t && e.shiftKey && (n = "Shift-" + n), n;
 }
 function jp(n) {
-  return new W({ props: { handleKeyDown: Ur(n) } });
+  return new q({ props: { handleKeyDown: Ur(n) } });
 }
 function Ur(n) {
   let e = Wp(n);
@@ -9924,7 +9924,7 @@ function $n(n) {
   }), d;
 }
 function vh(n) {
-  const { editor: e, rules: t } = n, i = new W({
+  const { editor: e, rules: t } = n, i = new q({
     state: {
       init() {
         return null;
@@ -10137,7 +10137,7 @@ function Eh(n) {
       return o = typeof ClipboardEvent < "u" ? new ClipboardEvent("paste") : null, m;
     }
   };
-  return t.map((d) => new W({
+  return t.map((d) => new q({
     // we register a global drag handler to track the current drag source element
     view(u) {
       const p = (f) => {
@@ -10367,7 +10367,7 @@ class Vt {
     });
   }
 }
-class K {
+class j {
   constructor(e = {}) {
     this.type = "extension", this.name = "extension", this.parent = null, this.child = null, this.config = {
       name: this.name,
@@ -10383,7 +10383,7 @@ class K {
     })) || {};
   }
   static create(e = {}) {
-    return new K(e);
+    return new j(e);
   }
   configure(e = {}) {
     const t = this.extend({
@@ -10393,7 +10393,7 @@ class K {
     return t.name = this.name, t.parent = this.parent, t;
   }
   extend(e = {}) {
-    const t = new K({ ...this.config, ...e });
+    const t = new j({ ...this.config, ...e });
     return t.parent = this, this.child = t, t.name = e.name ? e.name : t.parent.name, e.defaultOptions && Object.keys(e.defaultOptions).length > 0 && console.warn(`[tiptap warn]: BREAKING CHANGE: "defaultOptions" is deprecated. Please use "addOptions" instead. Found in extension: "${t.name}".`), t.options = R(E(t, "addOptions", {
       name: t.name
     })), t.storage = R(E(t, "addStorage", {
@@ -10425,7 +10425,7 @@ function Tc(n, e, t) {
 function Ac(n) {
   return Object.fromEntries(Object.entries(n.nodes).filter(([, e]) => e.spec.toText).map(([e, t]) => [e, t.spec.toText]));
 }
-const Ah = K.create({
+const Ah = j.create({
   name: "clipboardTextSerializer",
   addOptions() {
     return {
@@ -10434,8 +10434,8 @@ const Ah = K.create({
   },
   addProseMirrorPlugins() {
     return [
-      new W({
-        key: new J("clipboardTextSerializer"),
+      new q({
+        key: new K("clipboardTextSerializer"),
         props: {
           clipboardTextSerializer: () => {
             const { editor: n } = this, { state: e, schema: t } = n, { doc: i, selection: s } = e, { ranges: r } = s, o = Math.min(...r.map((d) => d.$from.pos)), l = Math.max(...r.map((d) => d.$to.pos)), a = Ac(t);
@@ -11396,19 +11396,19 @@ var Gf = /* @__PURE__ */ Object.freeze({
   wrapIn: Kf,
   wrapInList: Jf
 });
-const Yf = K.create({
+const Yf = j.create({
   name: "commands",
   addCommands() {
     return {
       ...Gf
     };
   }
-}), Xf = K.create({
+}), Xf = j.create({
   name: "drop",
   addProseMirrorPlugins() {
     return [
-      new W({
-        key: new J("tiptapDrop"),
+      new q({
+        key: new K("tiptapDrop"),
         props: {
           handleDrop: (n, e, t, i) => {
             this.editor.emit("drop", {
@@ -11422,24 +11422,24 @@ const Yf = K.create({
       })
     ];
   }
-}), Qf = K.create({
+}), Qf = j.create({
   name: "editable",
   addProseMirrorPlugins() {
     return [
-      new W({
-        key: new J("editable"),
+      new q({
+        key: new K("editable"),
         props: {
           editable: () => this.editor.options.editable
         }
       })
     ];
   }
-}), Zf = new J("focusEvents"), em = K.create({
+}), Zf = new K("focusEvents"), em = j.create({
   name: "focusEvents",
   addProseMirrorPlugins() {
     const { editor: n } = this;
     return [
-      new W({
+      new q({
         key: Zf,
         props: {
           handleDOMEvents: {
@@ -11458,7 +11458,7 @@ const Yf = K.create({
       })
     ];
   }
-}), tm = K.create({
+}), tm = j.create({
   name: "keymap",
   addKeyboardShortcuts() {
     const n = () => this.editor.commands.first(({ commands: o }) => [
@@ -11512,8 +11512,8 @@ const Yf = K.create({
       // to a paragraph if necessary.
       // This is an alternative to ProseMirror's `AllSelection`, which doesn’t work well
       // with many other commands.
-      new W({
-        key: new J("clearDocument"),
+      new q({
+        key: new K("clearDocument"),
         appendTransaction: (n, e, t) => {
           if (n.some((m) => m.getMeta("composition")))
             return;
@@ -11536,12 +11536,12 @@ const Yf = K.create({
       })
     ];
   }
-}), nm = K.create({
+}), nm = j.create({
   name: "paste",
   addProseMirrorPlugins() {
     return [
-      new W({
-        key: new J("tiptapPaste"),
+      new q({
+        key: new K("tiptapPaste"),
         props: {
           handlePaste: (n, e, t) => {
             this.editor.emit("paste", {
@@ -11554,12 +11554,12 @@ const Yf = K.create({
       })
     ];
   }
-}), im = K.create({
+}), im = j.create({
   name: "tabindex",
   addProseMirrorPlugins() {
     return [
-      new W({
-        key: new J("tabindex"),
+      new q({
+        key: new K("tabindex"),
         props: {
           attributes: () => this.editor.isEditable ? { tabindex: "0" } : {}
         }
@@ -12575,8 +12575,8 @@ const dm = /^\s*>\s$/, um = B.create({
     return [
       // this plugin creates a code block for pasted content from VS Code
       // we can also detect the copied code language
-      new W({
-        key: new J("codeBlockVSCodeHandler"),
+      new q({
+        key: new K("codeBlockVSCodeHandler"),
         props: {
           handlePaste: (n, e) => {
             if (!e.clipboardData || this.editor.isActive(this.type.name))
@@ -12598,7 +12598,7 @@ const dm = /^\s*>\s$/, um = B.create({
   content: "block+"
 });
 function Em(n = {}) {
-  return new W({
+  return new q({
     view(e) {
       return new Tm(e, n);
     }
@@ -12678,7 +12678,7 @@ class Tm {
     this.editorView.dom.contains(e.relatedTarget) || this.setCursor(null);
   }
 }
-const Am = K.create({
+const Am = j.create({
   name: "dropCursor",
   addOptions() {
     return {
@@ -12693,7 +12693,7 @@ const Am = K.create({
     ];
   }
 });
-class V extends L {
+class U extends L {
   /**
   Create a gap cursor.
   */
@@ -12702,13 +12702,13 @@ class V extends L {
   }
   map(e, t) {
     let i = e.resolve(t.map(this.head));
-    return V.valid(i) ? new V(i) : L.near(i);
+    return U.valid(i) ? new U(i) : L.near(i);
   }
   content() {
     return S.empty;
   }
   eq(e) {
-    return e instanceof V && e.head == this.head;
+    return e instanceof U && e.head == this.head;
   }
   toJSON() {
     return { type: "gapcursor", pos: this.head };
@@ -12719,7 +12719,7 @@ class V extends L {
   static fromJSON(e, t) {
     if (typeof t.pos != "number")
       throw new RangeError("Invalid input for GapCursor.fromJSON");
-    return new V(e.resolve(t.pos));
+    return new U(e.resolve(t.pos));
   }
   /**
   @internal
@@ -12745,7 +12745,7 @@ class V extends L {
   */
   static findGapCursorFrom(e, t, i = !1) {
     e: for (; ; ) {
-      if (!i && V.valid(e))
+      if (!i && U.valid(e))
         return e;
       let s = e.pos, r = null;
       for (let o = e.depth; ; o--) {
@@ -12757,7 +12757,7 @@ class V extends L {
           return null;
         s += t;
         let a = e.doc.resolve(s);
-        if (V.valid(a))
+        if (U.valid(a))
           return a;
       }
       for (; ; ) {
@@ -12771,16 +12771,16 @@ class V extends L {
         }
         r = o, s += t;
         let l = e.doc.resolve(s);
-        if (V.valid(l))
+        if (U.valid(l))
           return l;
       }
       return null;
     }
   }
 }
-V.prototype.visible = !1;
-V.findFrom = V.findGapCursorFrom;
-L.jsonID("gapcursor", V);
+U.prototype.visible = !1;
+U.findFrom = U.findGapCursorFrom;
+L.jsonID("gapcursor", U);
 class to {
   constructor(e) {
     this.pos = e;
@@ -12790,7 +12790,7 @@ class to {
   }
   resolve(e) {
     let t = e.resolve(this.pos);
-    return V.valid(t) ? new V(t) : L.near(t);
+    return U.valid(t) ? new U(t) : L.near(t);
   }
 }
 function Bc(n) {
@@ -12831,11 +12831,11 @@ function Lm(n) {
   return !0;
 }
 function Nm() {
-  return new W({
+  return new q({
     props: {
       decorations: Dm,
       createSelectionBetween(n, e, t) {
-        return e.pos == t.pos && V.valid(t) ? new V(t) : null;
+        return e.pos == t.pos && U.valid(t) ? new U(t) : null;
       },
       handleClick: Rm,
       handleKeyDown: Om,
@@ -12858,21 +12858,21 @@ function Un(n, e) {
         return !1;
       a = !1, l = i.doc.resolve(e > 0 ? l.after() : l.before());
     }
-    let c = V.findGapCursorFrom(l, e, a);
-    return c ? (s && s(i.tr.setSelection(new V(c))), !0) : !1;
+    let c = U.findGapCursorFrom(l, e, a);
+    return c ? (s && s(i.tr.setSelection(new U(c))), !0) : !1;
   };
 }
 function Rm(n, e, t) {
   if (!n || !n.editable)
     return !1;
   let i = n.state.doc.resolve(e);
-  if (!V.valid(i))
+  if (!U.valid(i))
     return !1;
   let s = n.posAtCoords({ left: t.clientX, top: t.clientY });
-  return s && s.inside > -1 && A.isSelectable(n.state.doc.nodeAt(s.inside)) ? !1 : (n.dispatch(n.state.tr.setSelection(new V(i))), !0);
+  return s && s.inside > -1 && A.isSelectable(n.state.doc.nodeAt(s.inside)) ? !1 : (n.dispatch(n.state.tr.setSelection(new U(i))), !0);
 }
 function Im(n, e) {
-  if (e.inputType != "insertCompositionText" || !(n.state.selection instanceof V))
+  if (e.inputType != "insertCompositionText" || !(n.state.selection instanceof U))
     return !1;
   let { $from: t } = n.state.selection, i = t.parent.contentMatchAt(t.index()).findWrapping(n.state.schema.nodes.text);
   if (!i)
@@ -12884,12 +12884,12 @@ function Im(n, e) {
   return r.setSelection(_.near(r.doc.resolve(t.pos + 1))), n.dispatch(r), !1;
 }
 function Dm(n) {
-  if (!(n.selection instanceof V))
+  if (!(n.selection instanceof U))
     return null;
   let e = document.createElement("div");
   return e.className = "ProseMirror-gapcursor", F.create(n.doc, [se.widget(n.selection.head, e, { key: "gapcursor" })]);
 }
-const Pm = K.create({
+const Pm = j.create({
   name: "gapCursor",
   addProseMirrorPlugins() {
     return [
@@ -13305,12 +13305,12 @@ function ni(n) {
   }
   return Ds;
 }
-const Et = new J("history"), jm = new J("closeHistory");
+const Et = new K("history"), jm = new K("closeHistory");
 function Km(n = {}) {
   return n = {
     depth: n.depth || 100,
     newGroupDelay: n.newGroupDelay || 500
-  }, new W({
+  }, new q({
     key: Et,
     state: {
       init() {
@@ -13343,7 +13343,7 @@ function zc(n, e) {
     return !0;
   };
 }
-const $c = zc(!1, !0), Fc = zc(!0, !0), Jm = K.create({
+const $c = zc(!1, !0), Fc = zc(!0, !0), Jm = j.create({
   name: "history",
   addOptions() {
     return {
@@ -13670,7 +13670,7 @@ const $c = zc(!1, !0), Fc = zc(!0, !0), Jm = K.create({
 }), ag = B.create({
   name: "text",
   group: "inline"
-}), cg = K.create({
+}), cg = j.create({
   name: "starterKit",
   addExtensions() {
     const n = [];
@@ -13852,7 +13852,7 @@ pe.prototype = {
     return s.j[n] = o, o;
   }
 };
-const O = (n, e, t, i, s) => n.ta(e, t, i, s), q = (n, e, t, i, s) => n.tr(e, t, i, s), Tl = (n, e, t, i, s) => n.ts(e, t, i, s), w = (n, e, t, i, s) => n.tt(e, t, i, s), Fe = "WORD", gr = "UWORD", Vc = "ASCIINUMERICAL", Uc = "ALPHANUMERICAL", _n = "LOCALHOST", br = "TLD", yr = "UTLD", ii = "SCHEME", $t = "SLASH_SCHEME", no = "NUM", vr = "WS", io = "NL", hn = "OPENBRACE", fn = "CLOSEBRACE", wi = "OPENBRACKET", xi = "CLOSEBRACKET", Si = "OPENPAREN", Ci = "CLOSEPAREN", Mi = "OPENANGLEBRACKET", Ei = "CLOSEANGLEBRACKET", Ti = "FULLWIDTHLEFTPAREN", Ai = "FULLWIDTHRIGHTPAREN", _i = "LEFTCORNERBRACKET", Li = "RIGHTCORNERBRACKET", Ni = "LEFTWHITECORNERBRACKET", Oi = "RIGHTWHITECORNERBRACKET", Ri = "FULLWIDTHLESSTHAN", Ii = "FULLWIDTHGREATERTHAN", Di = "AMPERSAND", Pi = "APOSTROPHE", Bi = "ASTERISK", Xe = "AT", Hi = "BACKSLASH", zi = "BACKTICK", $i = "CARET", Ze = "COLON", so = "COMMA", Fi = "DOLLAR", Ae = "DOT", qi = "EQUALS", ro = "EXCLAMATION", ve = "HYPHEN", mn = "PERCENT", Vi = "PIPE", Ui = "PLUS", Wi = "POUND", gn = "QUERY", oo = "QUOTE", Wc = "FULLWIDTHMIDDLEDOT", lo = "SEMI", _e = "SLASH", bn = "TILDE", ji = "UNDERSCORE", jc = "EMOJI", Ki = "SYM";
+const O = (n, e, t, i, s) => n.ta(e, t, i, s), V = (n, e, t, i, s) => n.tr(e, t, i, s), Tl = (n, e, t, i, s) => n.ts(e, t, i, s), w = (n, e, t, i, s) => n.tt(e, t, i, s), Fe = "WORD", gr = "UWORD", Vc = "ASCIINUMERICAL", Uc = "ALPHANUMERICAL", _n = "LOCALHOST", br = "TLD", yr = "UTLD", ii = "SCHEME", $t = "SLASH_SCHEME", no = "NUM", vr = "WS", io = "NL", hn = "OPENBRACE", fn = "CLOSEBRACE", wi = "OPENBRACKET", xi = "CLOSEBRACKET", Si = "OPENPAREN", Ci = "CLOSEPAREN", Mi = "OPENANGLEBRACKET", Ei = "CLOSEANGLEBRACKET", Ti = "FULLWIDTHLEFTPAREN", Ai = "FULLWIDTHRIGHTPAREN", _i = "LEFTCORNERBRACKET", Li = "RIGHTCORNERBRACKET", Ni = "LEFTWHITECORNERBRACKET", Oi = "RIGHTWHITECORNERBRACKET", Ri = "FULLWIDTHLESSTHAN", Ii = "FULLWIDTHGREATERTHAN", Di = "AMPERSAND", Pi = "APOSTROPHE", Bi = "ASTERISK", Xe = "AT", Hi = "BACKSLASH", zi = "BACKTICK", $i = "CARET", Ze = "COLON", so = "COMMA", Fi = "DOLLAR", Ae = "DOT", qi = "EQUALS", ro = "EXCLAMATION", ve = "HYPHEN", mn = "PERCENT", Vi = "PIPE", Ui = "PLUS", Wi = "POUND", gn = "QUERY", oo = "QUOTE", Wc = "FULLWIDTHMIDDLEDOT", lo = "SEMI", _e = "SLASH", bn = "TILDE", ji = "UNDERSCORE", jc = "EMOJI", Ki = "SYM";
 var Kc = /* @__PURE__ */ Object.freeze({
   __proto__: null,
   ALPHANUMERICAL: Uc,
@@ -13919,36 +13919,36 @@ function vg(n = []) {
   pe.groups = e;
   const t = new pe();
   Wn == null && (Wn = _l(ug)), jn == null && (jn = _l(pg)), w(t, "'", Pi), w(t, "{", hn), w(t, "}", fn), w(t, "[", wi), w(t, "]", xi), w(t, "(", Si), w(t, ")", Ci), w(t, "<", Mi), w(t, ">", Ei), w(t, "（", Ti), w(t, "）", Ai), w(t, "「", _i), w(t, "」", Li), w(t, "『", Ni), w(t, "』", Oi), w(t, "＜", Ri), w(t, "＞", Ii), w(t, "&", Di), w(t, "*", Bi), w(t, "@", Xe), w(t, "`", zi), w(t, "^", $i), w(t, ":", Ze), w(t, ",", so), w(t, "$", Fi), w(t, ".", Ae), w(t, "=", qi), w(t, "!", ro), w(t, "-", ve), w(t, "%", mn), w(t, "|", Vi), w(t, "+", Ui), w(t, "#", Wi), w(t, "?", gn), w(t, '"', oo), w(t, "/", _e), w(t, ";", lo), w(t, "~", bn), w(t, "_", ji), w(t, "\\", Hi), w(t, "・", Wc);
-  const i = q(t, $e, no, {
+  const i = V(t, $e, no, {
     [pr]: !0
   });
-  q(i, $e, i);
-  const s = q(i, ze, Vc, {
+  V(i, $e, i);
+  const s = V(i, ze, Vc, {
     [pn]: !0
-  }), r = q(i, en, Uc, {
+  }), r = V(i, en, Uc, {
     [ln]: !0
-  }), o = q(t, ze, Fe, {
+  }), o = V(t, ze, Fe, {
     [hr]: !0
   });
-  q(o, $e, s), q(o, ze, o), q(s, $e, s), q(s, ze, s);
-  const l = q(t, en, gr, {
+  V(o, $e, s), V(o, ze, o), V(s, $e, s), V(s, ze, s);
+  const l = V(t, en, gr, {
     [fr]: !0
   });
-  q(l, ze), q(l, $e, r), q(l, en, l), q(r, $e, r), q(r, ze), q(r, en, r);
+  V(l, ze), V(l, $e, r), V(l, en, l), V(r, $e, r), V(r, ze), V(r, en, r);
   const a = w(t, zs, io, {
     [Ps]: !0
   }), c = w(t, Al, vr, {
     [Ps]: !0
-  }), d = q(t, Hs, vr, {
+  }), d = V(t, Hs, vr, {
     [Ps]: !0
   });
-  w(t, $s, d), w(c, zs, a), w(c, $s, d), q(c, Hs, d), w(d, Al), w(d, zs), q(d, Hs, d), w(d, $s, d);
-  const u = q(t, Bs, jc, {
+  w(t, $s, d), w(c, zs, a), w(c, $s, d), V(c, Hs, d), w(d, Al), w(d, zs), V(d, Hs, d), w(d, $s, d);
+  const u = V(t, Bs, jc, {
     [qc]: !0
   });
-  w(u, "#"), q(u, Bs, u), w(u, bg, u);
+  w(u, "#"), V(u, Bs, u), w(u, bg, u);
   const p = w(u, yg);
-  w(p, "#"), q(p, Bs, u);
+  w(p, "#"), V(p, Bs, u);
   const h = [[ze, o], [$e, s]], f = [[ze, null], [en, l], [$e, r]];
   for (let m = 0; m < Wn.length; m++)
     Ke(t, Wn[m], br, Fe, h);
@@ -14411,8 +14411,8 @@ function Ng(n) {
   return n.length === 1 ? n[0].isLink : n.length === 3 && n[1].isLink ? ["()", "[]"].includes(n[0].value + n[2].value) : !1;
 }
 function Og(n) {
-  return new W({
-    key: new J("autolink"),
+  return new q({
+    key: new K("autolink"),
     appendTransaction: (e, t, i) => {
       const s = e.some((c) => c.docChanged) && !t.doc.eq(i.doc), r = e.some((c) => c.getMeta("preventAutolink"));
       if (!s || r)
@@ -14455,8 +14455,8 @@ function Og(n) {
   });
 }
 function Rg(n) {
-  return new W({
-    key: new J("handleClickLink"),
+  return new q({
+    key: new K("handleClickLink"),
     props: {
       handleClick: (e, t, i) => {
         var s, r;
@@ -14475,8 +14475,8 @@ function Rg(n) {
   });
 }
 function Ig(n) {
-  return new W({
-    key: new J("handlePasteLink"),
+  return new q({
+    key: new K("handlePasteLink"),
     props: {
       handlePaste: (e, t, i) => {
         const { state: s } = e, { selection: r } = s, { empty: o } = r;
@@ -14669,7 +14669,7 @@ const Dg = fe.create({
       type: this.type
     })), n;
   }
-}), Pg = K.create({
+}), Pg = j.create({
   name: "textAlign",
   addOptions() {
     return {
@@ -14710,7 +14710,7 @@ const Dg = fe.create({
       "Mod-Shift-j": () => this.editor.commands.setTextAlign("justify")
     };
   }
-}), Bg = K.create({
+}), Bg = j.create({
   name: "placeholder",
   addOptions() {
     return {
@@ -14724,8 +14724,8 @@ const Dg = fe.create({
   },
   addProseMirrorPlugins() {
     return [
-      new W({
-        key: new J("placeholder"),
+      new q({
+        key: new K("placeholder"),
         props: {
           decorations: ({ doc: n, selection: e }) => {
             const t = this.editor.isEditable || !this.options.showOnlyWhenEditable, { anchor: i } = e, s = [];
@@ -14755,7 +14755,7 @@ const Dg = fe.create({
       })
     ];
   }
-}), Hg = K.create({
+}), Hg = j.create({
   name: "characterCount",
   addOptions() {
     return {
@@ -14787,8 +14787,8 @@ const Dg = fe.create({
   addProseMirrorPlugins() {
     let n = !1;
     return [
-      new W({
-        key: new J("characterCount"),
+      new q({
+        key: new K("characterCount"),
         appendTransaction: (e, t, i) => {
           if (n)
             return;
@@ -14932,7 +14932,7 @@ const Dg = fe.create({
       }
     };
   }
-}), Vg = K.create({
+}), Vg = j.create({
   name: "color",
   addOptions() {
     return {
@@ -15034,7 +15034,7 @@ if (typeof WeakMap < "u") {
     for (let s = 0; s < n.length; s += 2) if (n[s] == i) return n[s + 1];
   }, wr = (i, s) => (t == 10 && (t = 0), n[t++] = i, n[t++] = s);
 }
-var U = class {
+var W = class {
   constructor(n, e, t, i) {
     this.width = n, this.height = e, this.map = t, this.problems = i;
   }
@@ -15145,7 +15145,7 @@ function Kg(n) {
     }), d++;
   }
   (e === 0 || t === 0) && (r || (r = [])).push({ type: "zero_sized" });
-  const l = new U(e, t, i, r);
+  const l = new W(e, t, i, r);
   let a = !1;
   for (let c = 0; !a && c < o.length; c += 2) o[c] != null && o[c + 1] < t && (a = !0);
   return a && Gg(l, o, n), l;
@@ -15209,7 +15209,7 @@ function le(n) {
   }
   return e;
 }
-const et = new J("selectingCells");
+const et = new K("selectingCells");
 function Ot(n) {
   for (let e = n.depth - 1; e > 0; e--) if (n.node(e).type.spec.tableRole == "row") return n.node(0).resolve(n.before(e + 1));
   return null;
@@ -15254,7 +15254,7 @@ function po(n, e) {
   return n.depth == e.depth && n.pos >= e.start(-1) && n.pos <= e.end(-1);
 }
 function Xc(n, e, t) {
-  const i = n.node(-1), s = U.get(i), r = n.start(-1), o = s.nextCell(n.pos - r, e, t);
+  const i = n.node(-1), s = W.get(i), r = n.start(-1), o = s.nextCell(n.pos - r, e, t);
   return o == null ? null : n.node(0).resolve(r + o);
 }
 function Rt(n, e, t = 1) {
@@ -15282,7 +15282,7 @@ function eb(n, e, t) {
 }
 var z = class qe extends L {
   constructor(e, t = e) {
-    const i = e.node(-1), s = U.get(i), r = e.start(-1), o = s.rectBetween(e.pos - r, t.pos - r), l = e.node(0), a = s.cellsInRect(o).filter((d) => d != t.pos - r);
+    const i = e.node(-1), s = W.get(i), r = e.start(-1), o = s.rectBetween(e.pos - r, t.pos - r), l = e.node(0), a = s.cellsInRect(o).filter((d) => d != t.pos - r);
     a.unshift(t.pos - r);
     const c = a.map((d) => {
       const u = i.nodeAt(d);
@@ -15301,7 +15301,7 @@ var z = class qe extends L {
     return _.between(i, s);
   }
   content() {
-    const e = this.$anchorCell.node(-1), t = U.get(e), i = this.$anchorCell.start(-1), s = t.rectBetween(this.$anchorCell.pos - i, this.$headCell.pos - i), r = {}, o = [];
+    const e = this.$anchorCell.node(-1), t = W.get(e), i = this.$anchorCell.start(-1), s = t.rectBetween(this.$anchorCell.pos - i, this.$headCell.pos - i), r = {}, o = [];
     for (let a = s.top; a < s.bottom; a++) {
       const c = [];
       for (let d = a * t.width + s.left, u = s.left; u < s.right; u++, d++) {
@@ -15345,7 +15345,7 @@ var z = class qe extends L {
     this.replace(e, new S(y.from(t), 0, 0));
   }
   forEachCell(e) {
-    const t = this.$anchorCell.node(-1), i = U.get(t), s = this.$anchorCell.start(-1), r = i.cellsInRect(i.rectBetween(this.$anchorCell.pos - s, this.$headCell.pos - s));
+    const t = this.$anchorCell.node(-1), i = W.get(t), s = this.$anchorCell.start(-1), r = i.cellsInRect(i.rectBetween(this.$anchorCell.pos - s, this.$headCell.pos - s));
     for (let o = 0; o < r.length; o++) e(t.nodeAt(r[o]), s + r[o]);
   }
   isColSelection() {
@@ -15355,11 +15355,11 @@ var z = class qe extends L {
     return Math.max(i, s) == this.$headCell.node(-1).childCount;
   }
   static colSelection(e, t = e) {
-    const i = e.node(-1), s = U.get(i), r = e.start(-1), o = s.findCell(e.pos - r), l = s.findCell(t.pos - r), a = e.node(0);
+    const i = e.node(-1), s = W.get(i), r = e.start(-1), o = s.findCell(e.pos - r), l = s.findCell(t.pos - r), a = e.node(0);
     return o.top <= l.top ? (o.top > 0 && (e = a.resolve(r + s.map[o.left])), l.bottom < s.height && (t = a.resolve(r + s.map[s.width * (s.height - 1) + l.right - 1]))) : (l.top > 0 && (t = a.resolve(r + s.map[l.left])), o.bottom < s.height && (e = a.resolve(r + s.map[s.width * (s.height - 1) + o.right - 1]))), new qe(e, t);
   }
   isRowSelection() {
-    const e = this.$anchorCell.node(-1), t = U.get(e), i = this.$anchorCell.start(-1), s = t.colCount(this.$anchorCell.pos - i), r = t.colCount(this.$headCell.pos - i);
+    const e = this.$anchorCell.node(-1), t = W.get(e), i = this.$anchorCell.start(-1), s = t.colCount(this.$anchorCell.pos - i), r = t.colCount(this.$headCell.pos - i);
     if (Math.min(s, r) > 0) return !1;
     const o = s + this.$anchorCell.nodeAfter.attrs.colspan, l = r + this.$headCell.nodeAfter.attrs.colspan;
     return Math.max(o, l) == t.width;
@@ -15368,7 +15368,7 @@ var z = class qe extends L {
     return e instanceof qe && e.$anchorCell.pos == this.$anchorCell.pos && e.$headCell.pos == this.$headCell.pos;
   }
   static rowSelection(e, t = e) {
-    const i = e.node(-1), s = U.get(i), r = e.start(-1), o = s.findCell(e.pos - r), l = s.findCell(t.pos - r), a = e.node(0);
+    const i = e.node(-1), s = W.get(i), r = e.start(-1), o = s.findCell(e.pos - r), l = s.findCell(t.pos - r), a = e.node(0);
     return o.left <= l.left ? (o.left > 0 && (e = a.resolve(r + s.map[o.top * s.width])), l.right < s.width && (t = a.resolve(r + s.map[s.width * (l.top + 1) - 1]))) : (l.left > 0 && (t = a.resolve(r + s.map[l.top * s.width])), o.right < s.width && (e = a.resolve(r + s.map[s.width * (o.top + 1) - 1]))), new qe(e, t);
   }
   toJSON() {
@@ -15443,13 +15443,13 @@ function rb(n, e, t) {
       const l = s.resolve(i.from + 1);
       r = z.rowSelection(l, l);
     } else if (!t) {
-      const l = U.get(i.node), a = i.from + 1, c = a + l.map[l.width * l.height - 1];
+      const l = W.get(i.node), a = i.from + 1, c = a + l.map[l.width * l.height - 1];
       r = z.create(s, a + 1, c);
     }
   } else i instanceof _ && ib(i) ? r = _.create(s, i.from) : i instanceof _ && sb(i) && (r = _.create(s, i.$from.start(), i.$from.end()));
   return r && (e || (e = n.tr)).setSelection(r), e;
 }
-const ob = new J("fix-tables");
+const ob = new K("fix-tables");
 function ed(n, e, t, i) {
   const s = n.childCount, r = e.childCount;
   e: for (let o = 0, l = 0; o < r; o++) {
@@ -15469,7 +15469,7 @@ function td(n, e) {
   return e ? e.doc != n.doc && ed(e.doc, n.doc, 0, i) : n.doc.descendants(i), t;
 }
 function lb(n, e, t, i) {
-  const s = U.get(e);
+  const s = W.get(e);
   if (!s.problems) return i;
   i || (i = n.tr);
   const r = [];
@@ -15522,7 +15522,7 @@ function lb(n, e, t, i) {
   return i.setMeta(ob, { fixTables: !0 });
 }
 function Re(n) {
-  const e = n.selection, t = ps(n), i = t.node(-1), s = t.start(-1), r = U.get(i);
+  const e = n.selection, t = ps(n), i = t.node(-1), s = t.start(-1), r = W.get(i);
   return {
     ...e instanceof z ? r.rectBetween(e.$anchorCell.pos - s, e.$headCell.pos - s) : r.findCell(t.pos - s),
     tableStart: s,
@@ -15581,7 +15581,7 @@ function ub(n, e) {
     for (let s = t.right - 1; db(i, t, s), s != t.left; s--) {
       const r = t.tableStart ? i.doc.nodeAt(t.tableStart - 1) : i.doc;
       if (!r) throw new RangeError("No table found");
-      t.table = r, t.map = U.get(r);
+      t.table = r, t.map = W.get(r);
     }
     e(i);
   }
@@ -15661,7 +15661,7 @@ function gb(n, e) {
     for (let s = t.bottom - 1; mb(i, t, s), s != t.top; s--) {
       const r = t.tableStart ? i.doc.nodeAt(t.tableStart - 1) : i.doc;
       if (!r) throw new RangeError("No table found");
-      t.table = r, t.map = U.get(t.table);
+      t.table = r, t.map = W.get(t.table);
     }
     e(i);
   }
@@ -16032,12 +16032,12 @@ function $l(n, e, t, i, s, r, o, l) {
 function Fl(n, e, t, i, s) {
   let r = t ? n.doc.nodeAt(t - 1) : n.doc;
   if (!r) throw new Error("No table found");
-  let o = U.get(r);
+  let o = W.get(r);
   const { top: l, left: a } = i, c = a + s.width, d = l + s.height, u = n.tr;
   let p = 0;
   function h() {
     if (r = t ? u.doc.nodeAt(t - 1) : u.doc, !r) throw new Error("No table found");
-    o = U.get(r), p = u.mapping.maps.length;
+    o = W.get(r), p = u.mapping.maps.length;
   }
   Tb(u, o, r, t, c, d, p) && h(), zl(u, o, r, t, a, c, l, p) && h(), zl(u, o, r, t, a, c, d, p) && h(), $l(u, o, r, t, l, d, a, p) && h(), $l(u, o, r, t, l, d, c, p) && h();
   for (let f = l; f < d; f++) {
@@ -16108,11 +16108,11 @@ function Lb(n, e, t) {
       height: 1,
       rows: [y.from(Sr(le(n.state.schema).cell, t))]
     });
-    const r = s.$anchorCell.node(-1), o = s.$anchorCell.start(-1), l = U.get(r).rectBetween(s.$anchorCell.pos - o, s.$headCell.pos - o);
+    const r = s.$anchorCell.node(-1), o = s.$anchorCell.start(-1), l = W.get(r).rectBetween(s.$anchorCell.pos - o, s.$headCell.pos - o);
     return i = Eb(i, l.right - l.left, l.bottom - l.top), Fl(n.state, n.dispatch, o, l, i), !0;
   } else if (i) {
     const r = ps(n.state), o = r.start(-1);
-    return Fl(n.state, n.dispatch, o, U.get(r.node(-1)).findCell(r.pos - o), i), !0;
+    return Fl(n.state, n.dispatch, o, W.get(r.node(-1)).findCell(r.pos - o), i), !0;
   } else return !1;
 }
 function Nb(n, e) {
@@ -16210,9 +16210,9 @@ function Cr(n, e, t, i, s, r) {
     l ? (t.style.width = o + "px", t.style.minWidth = "") : (t.style.width = "", t.style.minWidth = o + "px");
   }
 }
-const ge = new J("tableColumnResizing");
+const ge = new K("tableColumnResizing");
 function Rb({ handleWidth: n = 5, cellMinWidth: e = 25, defaultCellMinWidth: t = 100, View: i = Ob, lastColumnResizable: s = !0 } = {}) {
-  const r = new W({
+  const r = new q({
     key: ge,
     state: {
       init(o, l) {
@@ -16276,7 +16276,7 @@ function Db(n, e, t, i) {
     }
     if (o != s.activeHandle) {
       if (!i && o !== -1) {
-        const l = n.state.doc.resolve(o), a = l.node(-1), c = U.get(a), d = l.start(-1);
+        const l = n.state.doc.resolve(o), a = l.node(-1), c = W.get(a), d = l.start(-1);
         if (c.colCount(l.pos - d) + l.nodeAfter.attrs.colspan - 1 == c.width - 1) return;
       }
       rd(n, o);
@@ -16335,7 +16335,7 @@ function Vl(n, e, t, i) {
   const { pos: o } = r, l = Ot(n.state.doc.resolve(o));
   if (!l) return -1;
   if (t == "right") return l.pos;
-  const a = U.get(l.node(-1)), c = l.start(-1), d = a.map.indexOf(l.pos - c);
+  const a = W.get(l.node(-1)), c = l.start(-1), d = a.map.indexOf(l.pos - c);
   return d % a.width == 0 ? -1 : c + a.map[d - 1];
 }
 function Ul(n, e, t) {
@@ -16346,7 +16346,7 @@ function rd(n, e) {
   n.dispatch(n.state.tr.setMeta(ge, { setHandle: e }));
 }
 function $b(n, e, t) {
-  const i = n.state.doc.resolve(e), s = i.node(-1), r = U.get(s), o = i.start(-1), l = r.colCount(i.pos - o) + i.nodeAfter.attrs.colspan - 1, a = n.state.tr;
+  const i = n.state.doc.resolve(e), s = i.node(-1), r = W.get(s), o = i.start(-1), l = r.colCount(i.pos - o) + i.nodeAfter.attrs.colspan - 1, a = n.state.tr;
   for (let c = 0; c < r.height; c++) {
     const d = c * r.width + l;
     if (c && r.map[d] == r.map[d - r.width]) continue;
@@ -16361,7 +16361,7 @@ function $b(n, e, t) {
   a.docChanged && n.dispatch(a);
 }
 function Wl(n, e, t, i) {
-  const s = n.state.doc.resolve(e), r = s.node(-1), o = s.start(-1), l = U.get(r).colCount(s.pos - o) + s.nodeAfter.attrs.colspan - 1;
+  const s = n.state.doc.resolve(e), r = s.node(-1), o = s.start(-1), l = W.get(r).colCount(s.pos - o) + s.nodeAfter.attrs.colspan - 1;
   let a = n.domAtPos(s.start(-1)).node;
   for (; a && a.nodeName != "TABLE"; ) a = a.parentNode;
   a && Cr(r, a.firstChild, a, i, l, t);
@@ -16372,7 +16372,7 @@ function Fb(n) {
 function qb(n, e) {
   const t = [], i = n.doc.resolve(e), s = i.node(-1);
   if (!s) return F.empty;
-  const r = U.get(s), o = i.start(-1), l = r.colCount(i.pos - o) + i.nodeAfter.attrs.colspan - 1;
+  const r = W.get(s), o = i.start(-1), l = r.colCount(i.pos - o) + i.nodeAfter.attrs.colspan - 1;
   for (let c = 0; c < r.height; c++) {
     const d = l + c * r.width;
     if ((l == r.width - 1 || r.map[d] != r.map[d + 1]) && (c == 0 || r.map[d] != r.map[d - r.width])) {
@@ -16384,7 +16384,7 @@ function qb(n, e) {
   return F.create(n.doc, t);
 }
 function Vb({ allowTableNodeSelection: n = !1 } = {}) {
-  return new W({
+  return new q({
     key: et,
     state: {
       init() {
@@ -18017,8 +18017,26 @@ const ly = B.create({
       ]
     ];
   }
+}), dy = j.create({
+  name: "trailingNode",
+  addProseMirrorPlugins() {
+    const n = new K("trailingNode");
+    return [
+      new q({
+        key: n,
+        appendTransaction: (e, t, i) => {
+          const { doc: s, tr: r, schema: o } = i, l = s.lastChild;
+          if (!l) return null;
+          const a = l.type.name === "paragraph";
+          if (a && l.content.size === 0 || a) return null;
+          const d = o.nodes.paragraph;
+          return d ? r.insert(s.content.size, d.create()) : null;
+        }
+      })
+    ];
+  }
 });
-function dy(n) {
+function uy(n) {
   var e;
   const { char: t, allowSpaces: i, allowToIncludeChar: s, allowedPrefixes: r, startOfLine: o, $position: l } = n, a = i && !s, c = cm(t), d = new RegExp(`\\s${c}$`), u = o ? "^" : "", p = s ? "" : c, h = a ? new RegExp(`${u}${c}.*?(?=\\s${p}|$)`, "gm") : new RegExp(`${u}(?:^)?${c}[^\\s${p}]*`, "gm"), f = ((e = l.nodeBefore) === null || e === void 0 ? void 0 : e.isText) && l.nodeBefore.text;
   if (!f)
@@ -18040,10 +18058,10 @@ function dy(n) {
     text: g[0]
   } : null;
 }
-const uy = new J("suggestion");
-function py({ pluginKey: n = uy, editor: e, char: t = "@", allowSpaces: i = !1, allowToIncludeChar: s = !1, allowedPrefixes: r = [" "], startOfLine: o = !1, decorationTag: l = "span", decorationClass: a = "suggestion", decorationContent: c = "", decorationEmptyClass: d = "is-empty", command: u = () => null, items: p = () => [], render: h = () => ({}), allow: f = () => !0, findSuggestionMatch: m = dy }) {
+const py = new K("suggestion");
+function hy({ pluginKey: n = py, editor: e, char: t = "@", allowSpaces: i = !1, allowToIncludeChar: s = !1, allowedPrefixes: r = [" "], startOfLine: o = !1, decorationTag: l = "span", decorationClass: a = "suggestion", decorationContent: c = "", decorationEmptyClass: d = "is-empty", command: u = () => null, items: p = () => [], render: h = () => ({}), allow: f = () => !0, findSuggestionMatch: m = uy }) {
   let g;
-  const b = h == null ? void 0 : h(), v = new W({
+  const b = h == null ? void 0 : h(), v = new q({
     key: n,
     view() {
       return {
@@ -18147,7 +18165,7 @@ function py({ pluginKey: n = uy, editor: e, char: t = "@", allowSpaces: i = !1, 
   });
   return v;
 }
-const hy = new J("slashCommands"), fy = [
+const fy = new K("slashCommands"), my = [
   // ── Text ──────────────────────────────
   {
     id: "paragraph",
@@ -18330,21 +18348,21 @@ const hy = new J("slashCommands"), fy = [
     }
   }
 ];
-function my(n, e) {
+function gy(n, e) {
   if (!e) return n;
   const t = e.toLowerCase();
   return n.filter(
     (i) => i.label.toLowerCase().includes(t) || i.description.toLowerCase().includes(t) || i.group.toLowerCase().includes(t)
   );
 }
-function gy(n) {
+function by(n) {
   const e = {};
   return n.forEach((t) => {
     const i = t.group || "Other";
     e[i] || (e[i] = []), e[i].push(t);
   }), e;
 }
-function by() {
+function yy() {
   let n = null, e = 0, t = [], i = null;
   function s() {
     const a = document.createElement("div");
@@ -18353,7 +18371,7 @@ function by() {
   function r(a) {
     if (!n) return;
     t = a;
-    const c = gy(a);
+    const c = by(a);
     let d = "", u = 0;
     if (a.length === 0)
       d = '<div class="tiptap-slash-menu__empty">No matching commands</div>';
@@ -18427,7 +18445,7 @@ function by() {
     }
   };
 }
-const yy = K.create({
+const vy = j.create({
   name: "slashCommands",
   addOptions() {
     return {
@@ -18436,20 +18454,20 @@ const yy = K.create({
     };
   },
   addProseMirrorPlugins() {
-    const n = this.options.commands || fy, e = this.options.filterFn || my;
+    const n = this.options.commands || my, e = this.options.filterFn || gy;
     return [
-      py({
+      hy({
         editor: this.editor,
         char: "/",
-        pluginKey: hy,
+        pluginKey: fy,
         startOfLine: !1,
         items: ({ query: t }) => e(n, t),
-        render: by
+        render: yy
       })
     ];
   }
 });
-class vy {
+class ky {
   /**
    * @param {import('./Toolbar').Toolbar} toolbar
    */
@@ -18821,7 +18839,7 @@ class vy {
     o && (o.checked = !0, t(".tiptap-align-btn").forEach((d) => d.classList.remove("tiptap-align-active")), (l = o.closest(".tiptap-align-btn")) == null || l.classList.add("tiptap-align-active")), t(".tiptap-width-btn").forEach((d) => d.classList.remove("active")), (a = e('[data-width=""]')) == null || a.classList.add("active"), (c = e('[data-tab="upload"]')) == null || c.click(), e(".tiptap-img-modal-title-text").textContent = "Insert Image", e(".tiptap-img-insert-btn-label").textContent = "Insert Image";
   }
 }
-class ky {
+class wy {
   /**
    * @param {import('./Toolbar').default} toolbar
    */
@@ -19120,7 +19138,7 @@ class ky {
     this.editor.chain().focus().unsetLink().run(), this._bs.hide();
   }
 }
-class wy {
+class xy {
   /**
    * @param {import('./Toolbar').default} toolbar
    */
@@ -19513,7 +19531,7 @@ class wy {
     this._editMode ? this.editor.chain().focus().updateCustomVideo(u).run() : this.editor.chain().focus().insertCustomVideo(u).run(), this._bs.hide();
   }
 }
-class xy {
+class Sy {
   /**
    * @param {import('./Toolbar').default} toolbar
    */
@@ -20047,7 +20065,7 @@ ms(Gi, "BORDER_COLOR_MAP", {
   dark: "#212529"
 });
 let Ar = Gi;
-class Sy {
+class Cy {
   /**
    * @param {import('./Toolbar').default} toolbar
    */
@@ -20523,7 +20541,7 @@ const Us = {
     label: "Keyboard Shortcuts",
     command: "_showShortcuts"
   }
-}, Cy = [
+}, My = [
   { id: "1-col", label: "1 Column", icon: "[ 12 ]" },
   { id: "2-col", label: "2 Columns", icon: "[ 6 | 6 ]" },
   { id: "3-col", label: "3 Columns", icon: "[ 4 | 4 | 4 ]" },
@@ -20532,7 +20550,7 @@ const Us = {
   { id: "2-1", label: "Sidebar Right", icon: "[ 8 | 4 ]" },
   { id: "1-1-2", label: "2 Narrow + Wide", icon: "[ 3 | 3 | 6 ]" },
   { id: "2-1-1", label: "Wide + 2 Narrow", icon: "[ 6 | 3 | 3 ]" }
-], My = [
+], Ey = [
   { id: "primary", label: "Primary", color: "#0d6efd" },
   { id: "secondary", label: "Secondary", color: "#6c757d" },
   { id: "success", label: "Success", color: "#198754" },
@@ -20542,14 +20560,14 @@ const Us = {
   { id: "light", label: "Light", color: "#f8f9fa" },
   { id: "dark", label: "Dark", color: "#212529" }
 ];
-class Ey {
+class Ty {
   /**
    * @param {HTMLElement} toolbarElement - The [data-tiptap-toolbar] element
    * @param {import('@tiptap/core').Editor} editor - Tiptap editor instance
    * @param {Object} config - Toolbar config with groups
    */
   constructor(e, t, i = {}) {
-    this.element = e, this.editor = t, this.config = i, this.buttons = /* @__PURE__ */ new Map(), this.editor._tiptapToolbar = this, this.imageModal = new vy(this), this.linkModal = new ky(this), this.videoModal = new wy(this), this.tableModal = new xy(this), this.buttonModal = new Tr(this), this.cardModal = new Ar(this), this.galleryModal = new Sy(this), this._render(), this._bindEvents();
+    this.element = e, this.editor = t, this.config = i, this.buttons = /* @__PURE__ */ new Map(), this.editor._tiptapToolbar = this, this.imageModal = new ky(this), this.linkModal = new wy(this), this.videoModal = new xy(this), this.tableModal = new Sy(this), this.buttonModal = new Tr(this), this.cardModal = new Ar(this), this.galleryModal = new Cy(this), this._render(), this._bindEvents();
   }
   /**
    * Render toolbar buttons into the toolbar element.
@@ -20615,10 +20633,10 @@ class Ey {
     const s = document.createElement("button");
     s.type = "button", s.className = "tiptap-toolbar__button", s.setAttribute("data-action", e), s.setAttribute("aria-label", t.label), s.setAttribute("title", t.label), s.setAttribute("aria-haspopup", "true"), s.setAttribute("aria-expanded", "false"), s.innerHTML = `<i class="bi bi-${t.icon}"></i>`;
     const r = document.createElement("div");
-    return r.className = "tiptap-toolbar__dropdown-menu", r.setAttribute("role", "menu"), r.style.display = "none", e === "row" && Cy.forEach((o) => {
+    return r.className = "tiptap-toolbar__dropdown-menu", r.setAttribute("role", "menu"), r.style.display = "none", e === "row" && My.forEach((o) => {
       const l = document.createElement("button");
       l.type = "button", l.className = "tiptap-toolbar__dropdown-item", l.setAttribute("data-layout-preset", o.id), l.setAttribute("role", "menuitem"), l.innerHTML = `<span class="tiptap-toolbar__preset-icon">${o.icon}</span> <span>${o.label}</span>`, r.appendChild(l);
-    }), e === "alert" && My.forEach((o) => {
+    }), e === "alert" && Ey.forEach((o) => {
       const l = document.createElement("button");
       l.type = "button", l.className = "tiptap-toolbar__dropdown-item", l.setAttribute("data-alert-type", o.id), l.setAttribute("role", "menuitem"), l.innerHTML = `<span class="tiptap-toolbar__alert-swatch" style="background:${o.color}"></span> <span>${o.label}</span>`, r.appendChild(l);
     }), s.addEventListener("click", (o) => {
@@ -20896,8 +20914,8 @@ const nn = {
     placeholder: "Enter target language (e.g., Vietnamese, Japanese, French)",
     requiresContent: !0
   }
-}, Ty = 10, Ws = "tiptap_ai_recent_prompts";
-class Ay {
+}, Ay = 10, Ws = "tiptap_ai_recent_prompts";
+class _y {
   /**
    * @param {import('./Editor').default} editorInstance - The parent TiptapEditor instance
    * @param {AiPanelConfig} config - AI configuration
@@ -21207,7 +21225,7 @@ class Ay {
   _saveRecentPrompt(e) {
     try {
       let t = JSON.parse(localStorage.getItem(Ws) || "[]");
-      t = t.filter((i) => i !== e), t.unshift(e), t = t.slice(0, Ty), localStorage.setItem(Ws, JSON.stringify(t)), this._loadRecentPrompts();
+      t = t.filter((i) => i !== e), t.unshift(e), t = t.slice(0, Ay), localStorage.setItem(Ws, JSON.stringify(t)), this._loadRecentPrompts();
     } catch {
     }
   }
@@ -21262,7 +21280,7 @@ class Ay {
     this._cancelRequest(), this.panelElement && this.panelElement.parentNode && this.panelElement.parentNode.removeChild(this.panelElement), this.panelElement = null, this._els = null;
   }
 }
-const _y = [
+const Ly = [
   {
     id: "duplicate",
     label: "Duplicate",
@@ -21288,7 +21306,7 @@ const _y = [
     separator: !0,
     danger: !0
   }
-], Ly = [
+], Ny = [
   { id: "paragraph", label: "Paragraph", icon: "text-paragraph" },
   { id: "heading1", label: "Heading 1", icon: "type-h1" },
   { id: "heading2", label: "Heading 2", icon: "type-h2" },
@@ -21298,7 +21316,7 @@ const _y = [
   { id: "blockquote", label: "Blockquote", icon: "blockquote-left" },
   { id: "codeBlock", label: "Code Block", icon: "code-square" }
 ];
-class Ny {
+class Oy {
   /**
    * @param {import('./Editor').default} editorInstance - The TiptapEditor instance
    */
@@ -21310,7 +21328,7 @@ class Ny {
    * @private
    */
   _build() {
-    this.handleEl = document.createElement("button"), this.handleEl.type = "button", this.handleEl.className = "tiptap-block-handle", this.handleEl.innerHTML = '<i class="bi bi-grip-vertical"></i>', this.handleEl.setAttribute("aria-label", "Block actions"), this.handleEl.setAttribute("title", "Block actions"), this.handleEl.style.display = "none", this.menuEl = document.createElement("div"), this.menuEl.className = "tiptap-block-menu", this.menuEl.setAttribute("role", "menu"), this.menuEl.style.display = "none", _y.forEach((i) => {
+    this.handleEl = document.createElement("button"), this.handleEl.type = "button", this.handleEl.className = "tiptap-block-handle", this.handleEl.innerHTML = '<i class="bi bi-grip-vertical"></i>', this.handleEl.setAttribute("aria-label", "Block actions"), this.handleEl.setAttribute("title", "Block actions"), this.handleEl.style.display = "none", this.menuEl = document.createElement("div"), this.menuEl.className = "tiptap-block-menu", this.menuEl.setAttribute("role", "menu"), this.menuEl.style.display = "none", Ly.forEach((i) => {
       if (i.separator) {
         const r = document.createElement("div");
         r.className = "tiptap-block-menu__separator", this.menuEl.appendChild(r);
@@ -21321,7 +21339,7 @@ class Ny {
     const e = document.createElement("div");
     e.className = "tiptap-block-menu__separator", this.menuEl.appendChild(e);
     const t = document.createElement("div");
-    t.className = "tiptap-block-menu__group-label", t.textContent = "Turn into", this.menuEl.appendChild(t), Ly.forEach((i) => {
+    t.className = "tiptap-block-menu__group-label", t.textContent = "Turn into", this.menuEl.appendChild(t), Ny.forEach((i) => {
       const s = document.createElement("button");
       s.type = "button", s.className = "tiptap-block-menu__item", s.setAttribute("data-turn-into", i.id), s.setAttribute("role", "menuitem"), s.innerHTML = `<i class="bi bi-${i.icon}"></i> <span>${i.label}</span>`, this.menuEl.appendChild(s);
     }), this.wrapper.appendChild(this.handleEl), this.wrapper.appendChild(this.menuEl);
@@ -21582,11 +21600,11 @@ function _r() {
   const n = ((e = navigator.userAgentData) == null ? void 0 : e.platform) || navigator.platform || "";
   return /mac/i.test(n) ? "mac" : /linux/i.test(n) ? "linux" : "windows";
 }
-function Oy(n) {
+function Ry(n) {
   const t = _r() === "mac";
   return n.replace(/Mod/g, t ? "⌘" : "Ctrl").replace(/Alt/g, t ? "⌥" : "Alt").replace(/Shift/g, t ? "⇧" : "Shift").replace(/\+/g, t ? "" : "+");
 }
-const Ry = [
+const Iy = [
   {
     title: "Text Formatting",
     shortcuts: [
@@ -21637,7 +21655,7 @@ const Ry = [
     ]
   }
 ];
-class Iy {
+class Dy {
   /**
    * @param {import('./Editor').default} editorInstance
    */
@@ -21697,11 +21715,11 @@ class Iy {
         onClick: () => this.close()
       }, ["×"])
     ]), i = ee("div", { className: "tiptap-shortcuts-modal__body" });
-    Ry.forEach((s) => {
+    Iy.forEach((s) => {
       i.appendChild(
         ee("div", { className: "tiptap-shortcuts__group-title" }, [s.title])
       ), s.shortcuts.forEach((r) => {
-        const o = Oy(r.keys), l = this._splitKeys(o), a = ee("span", { className: "tiptap-shortcuts__keys" });
+        const o = Ry(r.keys), l = this._splitKeys(o), a = ee("span", { className: "tiptap-shortcuts__keys" });
         l.forEach((c) => {
           a.appendChild(
             ee("kbd", { className: "tiptap-shortcuts__key" }, [c])
@@ -21740,7 +21758,7 @@ class Iy {
     document.removeEventListener("keydown", this._handleKeyDown), this._overlay && (this._overlay.remove(), this._overlay = null), this._visible = !1;
   }
 }
-class Dy {
+class Py {
   /**
    * @param {import('./Editor').default} editorInstance
    */
@@ -21867,7 +21885,7 @@ const Yl = [
   { id: "tablet", label: "Tablet (768px)", icon: "bi-tablet", width: 768 },
   { id: "mobile", label: "Mobile (375px)", icon: "bi-phone", width: 375 }
 ];
-class Py {
+class By {
   /**
    * @param {import('./Editor').default} editorInstance
    */
@@ -21943,7 +21961,7 @@ class Py {
     ), this._buttons.clear(), this._sizeLabel = null;
   }
 }
-class By {
+class Hy {
   /**
    * @param {HTMLElement} wrapperElement - The .tiptap-editor-wrapper element
    * @param {TiptapEditorConfig} config - Editor configuration from data-config
@@ -21984,16 +22002,16 @@ class By {
       onTransaction: ({ editor: s }) => {
         this.toolbar && this.toolbar.updateActiveStates(s);
       }
-    }), this.toolbarElement && (this.toolbar = new Ey(this.toolbarElement, this.editor, this.config.toolbar || {})), (i = this.config.ai) != null && i.enabled && (this.aiPanel = new Ay(this, this.config.ai), this.wrapper.addEventListener("tiptap:toggle-ai-panel", () => {
+    }), this.toolbarElement && (this.toolbar = new Ty(this.toolbarElement, this.editor, this.config.toolbar || {})), (i = this.config.ai) != null && i.enabled && (this.aiPanel = new _y(this, this.config.ai), this.wrapper.addEventListener("tiptap:toggle-ai-panel", () => {
       this.openAiPanel();
-    })), this.blockMenu = new Ny(this), this.a11y = new Dy(this), this.shortcuts = new Iy(this), this.responsivePreview = new Py(this), this._initTheme(), this.wrapper.addEventListener("tiptap:insert-image", () => {
+    })), this.blockMenu = new Oy(this), this.a11y = new Py(this), this.shortcuts = new Dy(this), this.responsivePreview = new By(this), this._initTheme(), this.wrapper.addEventListener("tiptap:insert-image", () => {
       this.toolbar && this.toolbar._handleImage();
     }), this.wrapper.addEventListener("tiptap:toggle-dark-mode", () => {
       const s = this.getTheme(), r = s === "auto" ? "dark" : s === "dark" ? "light" : "auto";
       this.setTheme(r);
     }), this.wrapper.addEventListener("tiptap:show-shortcuts", () => {
       this.openShortcuts();
-    }), this._syncToInput();
+    }), this._applyEditorDimensions(), this._syncToInput();
   }
   /**
    * Build the list of Tiptap extensions based on configuration.
@@ -22032,9 +22050,9 @@ class By {
       Yb.configure({
         resizable: !0
       })
-    ), t.push(Xb), t.push(Qb), t.push(Zb)), e.includes("bootstrapRow") && t.push(ey), (e.includes("bootstrapCol") || e.includes("bootstrapRow")) && (t.some((s) => s.name === "bootstrapCol") || t.push(ty)), e.includes("bootstrapAlert") && t.push(ny), e.includes("bootstrapCard") && t.push(iy), e.includes("bootstrapButton") && t.push(sy), e.includes("gallery") && (t.push(ay), t.push(cy)), e.includes("slashCommands") && t.push(yy.configure({
+    ), t.push(Xb), t.push(Qb), t.push(Zb)), e.includes("bootstrapRow") && t.push(ey), (e.includes("bootstrapCol") || e.includes("bootstrapRow")) && (t.some((s) => s.name === "bootstrapCol") || t.push(ty)), e.includes("bootstrapAlert") && t.push(ny), e.includes("bootstrapCard") && t.push(iy), e.includes("bootstrapButton") && t.push(sy), e.includes("gallery") && (t.push(ay), t.push(cy)), e.includes("slashCommands") && t.push(vy.configure({
       commands: ((i = this.config.slashCommands) == null ? void 0 : i.commands) || null
-    })), t;
+    })), t.push(dy), t;
   }
   /**
    * Parse the initial content from the hidden input.
@@ -22160,6 +22178,39 @@ class By {
     e && e !== "auto" && this.wrapper.setAttribute("data-theme", e);
   }
   /**
+   * Apply editor height, max-height, and resize settings from config.
+   *
+   * Config options:
+   *  - minHeight: CSS value (e.g. '200px', '10rem') – minimum editor height
+   *  - maxHeight: CSS value (e.g. '500px', '60vh') – enables scrollbar when exceeded
+   *  - height: CSS value (e.g. '400px') – fixed default height
+   *  - resizable: boolean – allows user to drag-resize the editor vertically
+   *
+   * @private
+   */
+  _applyEditorDimensions() {
+    const { minHeight: e, maxHeight: t, height: i, resizable: s } = this.config;
+    e && this.wrapper.style.setProperty("--tiptap-min-height", e), t && (this.contentElement.style.maxHeight = t, this.contentElement.style.overflowY = "auto"), i && (this.contentElement.style.height = i, this.contentElement.style.overflowY = "auto"), s && this._addResizeHandle();
+  }
+  /**
+   * Add a drag handle at the bottom of the editor for vertical resizing.
+   * @private
+   */
+  _addResizeHandle() {
+    const e = document.createElement("div");
+    e.className = "tiptap-editor__resize-handle", e.title = "Drag to resize", this.wrapper.appendChild(e);
+    let t = 0, i = 0;
+    const s = (o) => {
+      const l = i + (o.clientY - t), a = parseInt(getComputedStyle(this.wrapper).getPropertyValue("--tiptap-min-height")) || 100;
+      l >= a && (this.contentElement.style.height = l + "px", this.contentElement.style.overflowY = "auto");
+    }, r = () => {
+      document.removeEventListener("mousemove", s), document.removeEventListener("mouseup", r), this.wrapper.classList.remove("tiptap-editor--resizing"), document.body.style.userSelect = "";
+    };
+    e.addEventListener("mousedown", (o) => {
+      o.preventDefault(), t = o.clientY, i = this.contentElement.offsetHeight, this.wrapper.classList.add("tiptap-editor--resizing"), document.body.style.userSelect = "none", document.addEventListener("mousemove", s), document.addEventListener("mouseup", r);
+    });
+  }
+  /**
    * Open keyboard shortcuts help modal.
    */
   openShortcuts() {
@@ -22200,7 +22251,7 @@ class By {
     this._listeners[e] && this._listeners[e].forEach((i) => i(t));
   }
 }
-class $y {
+class Fy {
   /**
    * @param {Object} options
    * @param {string} options.browseUrl - API endpoint for browsing media
@@ -22370,32 +22421,32 @@ function Xl() {
   const n = document.querySelectorAll("[data-tiptap-editor]"), e = [];
   return n.forEach((t) => {
     if (t.dataset.initialized === "true") return;
-    const i = t.dataset.config, s = i ? JSON.parse(i) : {}, r = new By(t, s), o = t.id || `tiptap-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const i = t.dataset.config, s = i ? JSON.parse(i) : {}, r = new Hy(t, s), o = t.id || `tiptap-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     t.id = o, t.dataset.initialized = "true", On.set(o, r), e.push(r);
   }), e;
 }
-function Fy(n) {
+function qy(n) {
   return On.get(n);
 }
-function qy() {
+function Vy() {
   return On;
 }
-function Vy(n) {
+function Uy(n) {
   const e = On.get(n);
   e && (e.destroy(), On.delete(n));
 }
 document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", Xl) : Xl();
 export {
-  Dy as AccessibilityManager,
-  Ay as AiPanel,
-  Ny as BlockMenu,
-  Iy as KeyboardShortcuts,
-  $y as MediaBrowser,
-  Py as ResponsivePreview,
-  By as TiptapEditor,
-  Vy as destroyEditor,
-  qy as getAllEditors,
-  Fy as getEditor,
+  Py as AccessibilityManager,
+  _y as AiPanel,
+  Oy as BlockMenu,
+  Dy as KeyboardShortcuts,
+  Fy as MediaBrowser,
+  By as ResponsivePreview,
+  Hy as TiptapEditor,
+  Uy as destroyEditor,
+  Vy as getAllEditors,
+  qy as getEditor,
   Xl as initEditors
 };
 //# sourceMappingURL=tiptap-editor.es.js.map

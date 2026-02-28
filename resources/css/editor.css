@@ -161,6 +161,57 @@
     color: var(--tiptap-text-color);
 }
 
+/* Scrollbar styling for scrollable content */
+.tiptap-editor__content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tiptap-editor__content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tiptap-editor__content::-webkit-scrollbar-thumb {
+    background: var(--tiptap-border-color);
+    border-radius: 3px;
+}
+
+.tiptap-editor__content::-webkit-scrollbar-thumb:hover {
+    background: var(--tiptap-placeholder-color);
+}
+
+/* Resize Handle */
+.tiptap-editor__resize-handle {
+    height: 8px;
+    cursor: ns-resize;
+    background: var(--tiptap-toolbar-bg);
+    border-top: 1px solid var(--tiptap-border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+
+.tiptap-editor__resize-handle::after {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--tiptap-border-color);
+}
+
+.tiptap-editor__resize-handle:hover,
+.tiptap-editor--resizing .tiptap-editor__resize-handle {
+    background: var(--tiptap-hover-bg);
+}
+
+.tiptap-editor__resize-handle:hover::after,
+.tiptap-editor--resizing .tiptap-editor__resize-handle::after {
+    background: var(--tiptap-focus-color);
+}
+
 /* ProseMirror overrides */
 .tiptap-editor__content .ProseMirror {
     outline: none;

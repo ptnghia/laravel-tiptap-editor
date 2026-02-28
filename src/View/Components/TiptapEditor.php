@@ -34,6 +34,8 @@ class TiptapEditor extends Component
      */
     public function editorConfig(): array
     {
+        $editorDimensions = config('tiptap-editor.editor', []);
+
         $defaults = [
             'extensions' => config('tiptap-editor.extensions', []),
             'toolbar' => config('tiptap-editor.toolbar', []),
@@ -42,6 +44,10 @@ class TiptapEditor extends Component
             'ai' => [
                 'enabled' => config('tiptap-editor.ai.enabled', false),
             ],
+            'minHeight' => $editorDimensions['minHeight'] ?? '200px',
+            'maxHeight' => $editorDimensions['maxHeight'] ?? null,
+            'height' => $editorDimensions['height'] ?? null,
+            'resizable' => $editorDimensions['resizable'] ?? false,
         ];
 
         return array_merge($defaults, $this->config);
