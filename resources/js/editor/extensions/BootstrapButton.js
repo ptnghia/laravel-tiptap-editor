@@ -187,6 +187,13 @@ const BootstrapButton = Node.create({
    */
   addNodeView() {
     return ({ node, getPos, editor }) => {
+      // Wrap in a container for edit button positioning
+      const wrapper = document.createElement('span');
+      wrapper.setAttribute('data-type', 'bootstrap-button');
+      wrapper.style.position = 'relative';
+      wrapper.style.display = 'inline-block';
+      wrapper.contentEditable = 'false';
+
       const dom = document.createElement('span');
       const { text, variant, size, outline, target } = node.attrs;
 
@@ -197,29 +204,47 @@ const BootstrapButton = Node.create({
       if (size && BUTTON_SIZES.includes(size)) {
         dom.classList.add(`btn-${size}`);
       }
-      dom.setAttribute('data-type', 'bootstrap-button');
       dom.setAttribute('role', 'button');
       dom.textContent = text || 'Button';
       dom.style.cursor = 'pointer';
       dom.contentEditable = 'false';
 
-      // Double-click to edit button properties via modal
-      dom.addEventListener('dblclick', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+      wrapper.appendChild(dom);
 
+      const openModal = () => {
         const pos = getPos();
         if (typeof pos !== 'number') return;
-
-        // Open ButtonModal in edit mode if available via toolbar
         const toolbar = editor._tiptapToolbar;
         if (toolbar?.buttonModal) {
           toolbar.buttonModal.open(node.attrs, pos);
         }
+      };
+
+      // Edit overlay button
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'tiptap-node-edit-btn';
+      editBtn.title = 'Edit button (double-click)';
+      editBtn.innerHTML = '<i class="bi bi-pencil-square"></i>';
+      editBtn.contentEditable = 'false';
+      editBtn.style.top = '-8px';
+      editBtn.style.right = '-8px';
+      editBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openModal();
+      });
+      wrapper.appendChild(editBtn);
+
+      // Double-click to edit button properties via modal
+      dom.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openModal();
       });
 
       return {
-        dom,
+        dom: wrapper,
         update(updatedNode) {
           if (updatedNode.type.name !== 'bootstrapButton') return false;
 

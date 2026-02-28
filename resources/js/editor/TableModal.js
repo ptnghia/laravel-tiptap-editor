@@ -71,6 +71,7 @@ export class TableModal {
     this._el('striped').checked = false;
     this._el('hover').checked = false;
     this._el('small').checked = false;
+    this._el('alignMiddle').checked = false;
     this._renderGrid();
     this._updateGridLabel();
   }
@@ -128,6 +129,7 @@ export class TableModal {
         striped: this._el('striped').checked,
         hover: this._el('hover').checked,
         small: this._el('small').checked,
+        alignMiddle: this._el('alignMiddle').checked,
       };
       this.editor.chain().focus().updateTableStyles(styles).run();
     } else {
@@ -140,6 +142,7 @@ export class TableModal {
         striped: this._el('striped').checked,
         hover: this._el('hover').checked,
         small: this._el('small').checked,
+        alignMiddle: this._el('alignMiddle').checked,
       };
 
       this.editor.chain().focus().insertTable({ rows, cols, withHeaderRow }).run();
@@ -155,6 +158,7 @@ export class TableModal {
     this._el('striped').checked = !!styles.striped;
     this._el('hover').checked = !!styles.hover;
     this._el('small').checked = !!styles.small;
+    this._el('alignMiddle').checked = !!styles.alignMiddle;
   }
 
   _updateModalUI() {
@@ -275,6 +279,10 @@ export class TableModal {
             <div class="form-check">
               <input class="form-check-input" type="checkbox" data-tbl="small" id="tbl-small">
               <label class="form-check-label small" for="tbl-small">Small</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" data-tbl="alignMiddle" id="tbl-alignMiddle">
+              <label class="form-check-label small" for="tbl-alignMiddle">Align Middle</label>
             </div>
           </div>
         </div>

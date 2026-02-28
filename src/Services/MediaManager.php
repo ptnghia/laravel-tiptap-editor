@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Suspended\TiptapEditor\Services;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Suspended\TiptapEditor\Models\Media;
@@ -149,7 +150,7 @@ class MediaManager
      */
     protected function resolveUserDirectory(string $basePath, string $datePath): string
     {
-        $userId = auth()->id() ?? 'anonymous';
+        $userId = Auth::id() ?? 'anonymous';
 
         return $basePath . '/user-' . $userId . '/' . $datePath;
     }
@@ -162,7 +163,7 @@ class MediaManager
         $resolver = $this->config['directory_resolver'] ?? null;
 
         if (is_callable($resolver)) {
-            $result = call_user_func($resolver, $basePath, $datePath, auth()->user());
+            $result = call_user_func($resolver, $basePath, $datePath, Auth::user());
 
             // Prevent path traversal in custom resolver output
             $result = str_replace(['../', '..\\'], '', $result);

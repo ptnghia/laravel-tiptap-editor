@@ -506,7 +506,8 @@
 }
 
 /* Edit button – appears on hover */
-.tiptap-image-edit-btn {
+.tiptap-image-edit-btn,
+.tiptap-node-edit-btn {
     position: absolute;
     top: 6px;
     right: 6px;
@@ -522,11 +523,18 @@
     z-index: 5;
     transition: background 0.15s;
 }
-.tiptap-image-edit-btn:hover {
+.tiptap-image-edit-btn:hover,
+.tiptap-node-edit-btn:hover {
     background: rgba(0,0,0,.75);
 }
 .tiptap-editor__content .tiptap-image:hover .tiptap-image-edit-btn,
-.tiptap-editor__content .tiptap-image.ProseMirror-selectednode .tiptap-image-edit-btn {
+.tiptap-editor__content .tiptap-image.ProseMirror-selectednode .tiptap-image-edit-btn,
+.tiptap-editor__content [data-type="custom-video"]:hover .tiptap-node-edit-btn,
+.tiptap-editor__content [data-type="gallery"]:hover .tiptap-node-edit-btn,
+.tiptap-editor__content [data-type="bootstrap-card"]:hover .tiptap-node-edit-btn,
+.tiptap-editor__content [data-type="bootstrap-alert"]:hover .tiptap-node-edit-btn,
+.tiptap-editor__content [data-type="bootstrap-button"]:hover .tiptap-node-edit-btn,
+.tiptap-editor__content .tableWrapper:hover > .tiptap-node-edit-btn {
     display: inline-flex;
     align-items: center;
     gap: 3px;
@@ -1864,4 +1872,85 @@
 
 .tiptap-gallery-thumb:hover .btn-danger {
     opacity: 1;
+}
+
+/* ==========================================================================
+   Layout Modal
+   ========================================================================== */
+
+/* Column config cards */
+.tiptap-layout-column-config {
+    background: var(--bs-body-bg, #fff);
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    transition: border-color 0.15s;
+}
+
+.tiptap-layout-column-config:hover {
+    border-color: var(--bs-primary, #0d6efd);
+}
+
+/* Columns container scroll */
+.tiptap-layout-columns-container {
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* Option buttons (justify / align) */
+.tiptap-layout-option-btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 8px;
+    font-size: 10px;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 0.375rem;
+    background: var(--bs-body-bg, #fff);
+    color: var(--bs-body-color, #212529);
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 1;
+}
+
+.tiptap-layout-option-btn i {
+    font-size: 14px;
+}
+
+.tiptap-layout-option-btn:hover {
+    border-color: var(--bs-primary, #0d6efd);
+    color: var(--bs-primary, #0d6efd);
+}
+
+.tiptap-layout-option-btn.active {
+    background: var(--bs-primary, #0d6efd);
+    border-color: var(--bs-primary, #0d6efd);
+    color: #fff;
+}
+
+/* Dropdown separator */
+.tiptap-toolbar__dropdown-separator {
+    height: 1px;
+    margin: 4px 8px;
+    background: var(--bs-border-color, #dee2e6);
+}
+
+/* Advanced dropdown item accent */
+.tiptap-toolbar__dropdown-item--accent {
+    color: var(--bs-primary, #0d6efd);
+    font-weight: 500;
+}
+
+.tiptap-toolbar__dropdown-item--accent:hover {
+    background: rgba(13, 110, 253, 0.08);
+}
+
+/* Row edit button hover (already covered in node-edit-btn rules) */
+.tiptap-editor__content [data-type="bootstrap-row"]:hover > .tiptap-node-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
 }

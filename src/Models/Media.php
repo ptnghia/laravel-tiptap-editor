@@ -30,6 +30,9 @@ use Illuminate\Support\Facades\Storage;
  * @property int|null $mediable_id
  * @property \Illuminate\Support\Carbon $created_at
  * @property \Illuminate\Support\Carbon $updated_at
+ *
+ * @method static static create(array $attributes = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static> query()
  */
 class Media extends Model
 {

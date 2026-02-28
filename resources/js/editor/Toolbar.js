@@ -12,6 +12,7 @@ import { TableModal } from './TableModal.js';
 import { ButtonModal } from './ButtonModal.js';
 import { CardModal } from './CardModal.js';
 import { GalleryModal } from './GalleryModal.js';
+import { LayoutModal } from './LayoutModal.js';
 
 /**
  * Button definition: maps a toolbar button ID to its editor command, icon, and label.
@@ -331,6 +332,7 @@ export default class Toolbar {
     this.buttonModal = new ButtonModal(this);
     this.cardModal = new CardModal(this);
     this.galleryModal = new GalleryModal(this);
+    this.layoutModal = new LayoutModal(this);
 
     this._render();
     this._bindEvents();
@@ -487,6 +489,19 @@ export default class Toolbar {
         item.innerHTML = `<span class="tiptap-toolbar__preset-icon">${preset.icon}</span> <span>${preset.label}</span>`;
         menu.appendChild(item);
       });
+
+      // Separator + Advanced option
+      const sep = document.createElement('div');
+      sep.className = 'tiptap-toolbar__dropdown-separator';
+      menu.appendChild(sep);
+
+      const advItem = document.createElement('button');
+      advItem.type = 'button';
+      advItem.className = 'tiptap-toolbar__dropdown-item tiptap-toolbar__dropdown-item--accent';
+      advItem.setAttribute('data-layout-advanced', 'true');
+      advItem.setAttribute('role', 'menuitem');
+      advItem.innerHTML = '<i class="bi bi-gear me-2"></i><span>Advanced Layout...</span>';
+      menu.appendChild(advItem);
     }
 
     if (id === 'alert') {
@@ -512,8 +527,17 @@ export default class Toolbar {
       }
     });
 
-    // Handle preset/alert selection
+    // Handle preset/alert/layout-advanced selection
     menu.addEventListener('click', (e) => {
+      const layoutAdvanced = e.target.closest('[data-layout-advanced]');
+      if (layoutAdvanced) {
+        e.stopPropagation();
+        menu.style.display = 'none';
+        btn.setAttribute('aria-expanded', 'false');
+        this.layoutModal.open();
+        return;
+      }
+
       const layoutItem = e.target.closest('[data-layout-preset]');
       if (layoutItem) {
         e.stopPropagation();
@@ -615,6 +639,7 @@ export default class Toolbar {
               striped: !!node.attrs.striped,
               hover: !!node.attrs.hover,
               small: !!node.attrs.small,
+              alignMiddle: !!node.attrs.alignMiddle,
             };
             break;
           }
@@ -630,6 +655,10 @@ export default class Toolbar {
       return;
     }
     if (command === '_showLayoutDropdown') {
+      // If cursor is inside a row, open edit modal
+      if (this.editor.isActive('bootstrapRow')) {
+        this._handleEditLayout();
+      }
       // Layout dropdown is handled by the dropdown button itself
       return;
     }
@@ -791,6 +820,27 @@ export default class Toolbar {
   }
 
   /**
+   * Handle editing current layout row – opens LayoutModal with existing attrs.
+   * @private
+   */
+  _handleEditLayout() {
+    const { $from } = this.editor.state.selection;
+    for (let depth = $from.depth; depth > 0; depth--) {
+      const node = $from.node(depth);
+      if (node.type.name === 'bootstrapRow') {
+        const columns = [];
+        node.forEach((child) => {
+          if (child.type.name === 'bootstrapCol') {
+            columns.push({ colClass: child.attrs.colClass || 'col' });
+          }
+        });
+        this.layoutModal.open({ ...node.attrs, columns });
+        return;
+      }
+    }
+  }
+
+  /**
    * Update active states of all toolbar buttons based on current editor state.
    * @param {import('@tiptap/core').Editor} editor
    */
@@ -859,6 +909,8 @@ export default class Toolbar {
     this.cardModal = null;
     this.galleryModal?.destroy();
     this.galleryModal = null;
+    this.layoutModal?.destroy();
+    this.layoutModal = null;
     this.buttons.clear();
     this.element.innerHTML = '';
     if (this.editor) this.editor._tiptapToolbar = null;

@@ -1,6 +1,6 @@
 {
   "name": "suspended/laravel-tiptap-editor",
-  "version": "0.1.0",
+  "version": "1.2.0",
   "description": "Tiptap-based rich text editor assets for Laravel",
   "private": true,
   "scripts": {

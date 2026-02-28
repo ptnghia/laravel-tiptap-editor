@@ -105,7 +105,7 @@ class HtmlRenderer
             'customVideo' => $this->renderCustomVideo($attrs),
             'gallery' => $this->renderGallery($attrs, $childrenHtml),
             'galleryImage' => $this->renderGalleryImage($attrs),
-            'table' => "<table class=\"table\">{$childrenHtml}</table>",
+            'table' => $this->renderTable($attrs, $childrenHtml),
             'tableRow' => "<tr>{$childrenHtml}</tr>",
             'tableHeader' => $this->renderTableCell($attrs, $childrenHtml, 'th'),
             'tableCell' => $this->renderTableCell($attrs, $childrenHtml, 'td'),
@@ -181,7 +181,33 @@ class HtmlRenderer
         $gutter = (int) ($attrs['gutter'] ?? 3);
         $gutter = max(0, min(5, $gutter));
 
-        return "<div class=\"row g-{$gutter}\">{$childrenHtml}</div>";
+        $classes = "row g-{$gutter}";
+
+        $justifyMap = [
+            'center' => 'justify-content-center',
+            'end' => 'justify-content-end',
+            'between' => 'justify-content-between',
+            'around' => 'justify-content-around',
+            'evenly' => 'justify-content-evenly',
+        ];
+
+        $alignMap = [
+            'start' => 'align-items-start',
+            'center' => 'align-items-center',
+            'end' => 'align-items-end',
+        ];
+
+        $justify = $attrs['justifyContent'] ?? null;
+        if ($justify && isset($justifyMap[$justify])) {
+            $classes .= ' ' . $justifyMap[$justify];
+        }
+
+        $align = $attrs['alignItems'] ?? null;
+        if ($align && isset($alignMap[$align])) {
+            $classes .= ' ' . $alignMap[$align];
+        }
+
+        return "<div class=\"{$classes}\">{$childrenHtml}</div>";
     }
 
     /**
@@ -441,6 +467,34 @@ class HtmlRenderer
         }
 
         return "<div class=\"{$colClass}\"><img src=\"{$src}\" alt=\"{$alt}\" class=\"img-fluid rounded\" loading=\"lazy\"></div>";
+    }
+
+    /**
+     * Render a table node with Bootstrap 5 classes and responsive wrapper.
+     *
+     * @param  array<string, mixed>  $attrs
+     */
+    protected function renderTable(array $attrs, string $childrenHtml): string
+    {
+        $classes = 'table';
+
+        if (! empty($attrs['bordered'])) {
+            $classes .= ' table-bordered';
+        }
+        if (! empty($attrs['striped'])) {
+            $classes .= ' table-striped';
+        }
+        if (! empty($attrs['hover'])) {
+            $classes .= ' table-hover';
+        }
+        if (! empty($attrs['small'])) {
+            $classes .= ' table-sm';
+        }
+        if (! empty($attrs['alignMiddle'])) {
+            $classes .= ' align-middle';
+        }
+
+        return "<div class=\"table-responsive\"><table class=\"{$classes}\">{$childrenHtml}</table></div>";
     }
 
     /**

@@ -172,6 +172,16 @@ class JsonSanitizer
             return in_array($value, ['left', 'center', 'right'], true) ? $value : 'center';
         }
 
+        // justify-content: limited values
+        if ($attrName === 'justifyContent') {
+            return in_array($value, ['start', 'center', 'end', 'between', 'around', 'evenly'], true) ? $value : null;
+        }
+
+        // align-items: limited values
+        if ($attrName === 'alignItems') {
+            return in_array($value, ['start', 'center', 'end', 'stretch'], true) ? $value : null;
+        }
+
         // widthStyle: only allow "NNpx" or "NN%" patterns
         if ($attrName === 'widthStyle') {
             if (is_string($value) && preg_match('/^\d+(\.\d+)?(px|%)$/', trim($value))) {
@@ -181,7 +191,7 @@ class JsonSanitizer
         }
 
         // Boolean attributes
-        $boolAttributes = ['outline', 'lightbox'];
+        $boolAttributes = ['outline', 'lightbox', 'bordered', 'striped', 'hover', 'small', 'alignMiddle'];
         if (in_array($attrName, $boolAttributes, true)) {
             return (bool) $value;
         }

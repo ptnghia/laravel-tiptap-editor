@@ -85,7 +85,7 @@ class NodeRegistry
             'children' => [],
         ],
         'table' => [
-            'attrs' => [],
+            'attrs' => ['bordered', 'striped', 'hover', 'small', 'alignMiddle'],
             'children' => ['tableRow'],
         ],
         'tableRow' => [
@@ -101,7 +101,7 @@ class NodeRegistry
             'children' => ['paragraph', 'heading', 'bulletList', 'orderedList'],
         ],
         'bootstrapRow' => [
-            'attrs' => ['gutter'],
+            'attrs' => ['gutter', 'justifyContent', 'alignItems'],
             'children' => ['bootstrapCol'],
         ],
         'bootstrapCol' => [

@@ -239,6 +239,7 @@ const CustomVideo = Node.create({
       const dom = document.createElement('div');
       dom.setAttribute('data-type', 'custom-video');
       dom.contentEditable = 'false';
+      dom.style.position = 'relative';
 
       const { provider, videoId, url, title, aspectRatio, alignment, widthStyle, caption } = node.attrs;
       const ratio = aspectRatio || '16x9';
@@ -287,6 +288,22 @@ const CustomVideo = Node.create({
       }
 
       dom.appendChild(figure);
+
+      // Edit overlay button (shown on hover)
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'tiptap-node-edit-btn';
+      editBtn.title = 'Edit video (double-click)';
+      editBtn.innerHTML = '<i class="bi bi-pencil-square"></i>';
+      editBtn.contentEditable = 'false';
+      editBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (editor._tiptapToolbar?.videoModal) {
+          editor._tiptapToolbar.videoModal.open(node.attrs);
+        }
+      });
+      dom.appendChild(editBtn);
 
       // Double click to edit via modal
       dom.addEventListener('dblclick', (e) => {
@@ -350,6 +367,22 @@ const CustomVideo = Node.create({
           }
 
           dom.appendChild(newFigure);
+
+          // Re-add edit button
+          const newEditBtn = document.createElement('button');
+          newEditBtn.type = 'button';
+          newEditBtn.className = 'tiptap-node-edit-btn';
+          newEditBtn.title = 'Edit video (double-click)';
+          newEditBtn.innerHTML = '<i class="bi bi-pencil-square"></i>';
+          newEditBtn.contentEditable = 'false';
+          newEditBtn.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (editor._tiptapToolbar?.videoModal) {
+              editor._tiptapToolbar.videoModal.open(updatedNode.attrs);
+            }
+          });
+          dom.appendChild(newEditBtn);
 
           return true;
         },

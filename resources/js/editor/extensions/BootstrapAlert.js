@@ -119,6 +119,94 @@ const BootstrapAlert = Node.create({
     };
   },
 
+  addNodeView() {
+    return ({ node, editor, getPos }) => {
+      const dom = document.createElement('div');
+      dom.setAttribute('data-type', 'bootstrap-alert');
+      dom.style.position = 'relative';
+
+      const contentDOM = document.createElement('div');
+      contentDOM.style.minHeight = '1.5em';
+
+      const applyAttrs = (attrs) => {
+        const alertType = ALERT_TYPES.includes(attrs.type) ? attrs.type : 'info';
+        dom.className = `alert alert-${alertType}`;
+        dom.setAttribute('data-alert-type', alertType);
+        dom.setAttribute('role', 'alert');
+        dom.style.position = 'relative';
+
+        // Remove old edit button & dropdown
+        dom.querySelectorAll('.tiptap-node-edit-btn, .tiptap-alert-type-picker').forEach(el => el.remove());
+
+        // Ensure contentDOM is in the dom
+        if (!dom.contains(contentDOM)) {
+          dom.appendChild(contentDOM);
+        }
+
+        // Edit button
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'tiptap-node-edit-btn';
+        editBtn.title = 'Change alert type';
+        editBtn.innerHTML = '<i class="bi bi-pencil-square"></i>';
+        editBtn.contentEditable = 'false';
+        editBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          togglePicker();
+        });
+        dom.appendChild(editBtn);
+      };
+
+      // Type picker dropdown
+      const createPicker = () => {
+        const picker = document.createElement('div');
+        picker.className = 'tiptap-alert-type-picker';
+        picker.contentEditable = 'false';
+        picker.style.cssText = 'position:absolute;top:6px;right:36px;display:flex;gap:3px;z-index:6;background:rgba(255,255,255,.95);border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:4px 6px;box-shadow:0 2px 8px rgba(0,0,0,.12);flex-wrap:wrap;max-width:200px;';
+
+        ALERT_TYPES.forEach(type => {
+          const swatch = document.createElement('button');
+          swatch.type = 'button';
+          swatch.className = `btn btn-${type} btn-sm`;
+          swatch.style.cssText = 'width:24px;height:24px;padding:0;border-radius:4px;font-size:0;';
+          swatch.title = type.charAt(0).toUpperCase() + type.slice(1);
+          swatch.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            editor.chain().focus().setAlertType(type).run();
+            picker.remove();
+          });
+          picker.appendChild(swatch);
+        });
+
+        return picker;
+      };
+
+      const togglePicker = () => {
+        const existing = dom.querySelector('.tiptap-alert-type-picker');
+        if (existing) {
+          existing.remove();
+        } else {
+          dom.appendChild(createPicker());
+        }
+      };
+
+      applyAttrs(node.attrs);
+
+      return {
+        dom,
+        contentDOM,
+        update(updatedNode) {
+          if (updatedNode.type.name !== 'bootstrapAlert') return false;
+          applyAttrs(updatedNode.attrs);
+          return true;
+        },
+        destroy() {},
+      };
+    };
+  },
+
   addKeyboardShortcuts() {
     return {
       // Delete empty alert on Backspace

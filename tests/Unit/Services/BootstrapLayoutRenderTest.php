@@ -282,4 +282,117 @@ class BootstrapLayoutRenderTest extends TestCase
         $this->assertStringContainsString('<strong>bold</strong>', $html);
         $this->assertStringContainsString('class="col-md-6"', $html);
     }
+
+    public function test_renders_row_with_justify_content_center(): void
+    {
+        $json = [
+            'type' => 'doc',
+            'content' => [
+                [
+                    'type' => 'bootstrapRow',
+                    'attrs' => ['gutter' => 3, 'justifyContent' => 'center'],
+                    'content' => [
+                        [
+                            'type' => 'bootstrapCol',
+                            'attrs' => ['colClass' => 'col-md-4'],
+                            'content' => [
+                                ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Centered']]],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $html = $this->renderer->render($json);
+        $this->assertStringContainsString('row g-3 justify-content-center', $html);
+    }
+
+    public function test_renders_row_with_align_items_center(): void
+    {
+        $json = [
+            'type' => 'doc',
+            'content' => [
+                [
+                    'type' => 'bootstrapRow',
+                    'attrs' => ['gutter' => 2, 'alignItems' => 'center'],
+                    'content' => [
+                        [
+                            'type' => 'bootstrapCol',
+                            'attrs' => ['colClass' => 'col-md-6'],
+                            'content' => [
+                                ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Test']]],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $html = $this->renderer->render($json);
+        $this->assertStringContainsString('row g-2 align-items-center', $html);
+    }
+
+    public function test_renders_row_with_both_justify_and_align(): void
+    {
+        $json = [
+            'type' => 'doc',
+            'content' => [
+                [
+                    'type' => 'bootstrapRow',
+                    'attrs' => [
+                        'gutter' => 0,
+                        'justifyContent' => 'between',
+                        'alignItems' => 'end',
+                    ],
+                    'content' => [
+                        [
+                            'type' => 'bootstrapCol',
+                            'attrs' => ['colClass' => 'col-md-4'],
+                            'content' => [
+                                ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'A']]],
+                            ],
+                        ],
+                        [
+                            'type' => 'bootstrapCol',
+                            'attrs' => ['colClass' => 'col-md-4'],
+                            'content' => [
+                                ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'B']]],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $html = $this->renderer->render($json);
+        $this->assertStringContainsString('row g-0 justify-content-between align-items-end', $html);
+    }
+
+    public function test_row_with_null_justify_and_align_renders_basic_row(): void
+    {
+        $json = [
+            'type' => 'doc',
+            'content' => [
+                [
+                    'type' => 'bootstrapRow',
+                    'attrs' => ['gutter' => 3, 'justifyContent' => null, 'alignItems' => null],
+                    'content' => [
+                        [
+                            'type' => 'bootstrapCol',
+                            'attrs' => ['colClass' => 'col'],
+                            'content' => [
+                                ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'X']]],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $html = $this->renderer->render($json);
+        $this->assertStringContainsString('class="row g-3"', $html);
+        $this->assertStringNotContainsString('justify-content', $html);
+        $this->assertStringNotContainsString('align-items', $html);
+    }
 }

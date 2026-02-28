@@ -329,4 +329,110 @@ class TableRenderTest extends TestCase
         $html = $this->renderer->render($json);
         $this->assertStringContainsString('Line 1<br>Line 2', $html);
     }
+
+    // ── Table Bootstrap style tests ───────────────────────────────
+
+    /**
+     * Helper to build a minimal table JSON with given attrs.
+     *
+     * @param  array<string, mixed>  $tableAttrs
+     * @return array<string, mixed>
+     */
+    private function makeStyledTableJson(array $tableAttrs = []): array
+    {
+        return [
+            'type' => 'doc',
+            'content' => [
+                [
+                    'type' => 'table',
+                    'attrs' => $tableAttrs,
+                    'content' => [
+                        [
+                            'type' => 'tableRow',
+                            'content' => [
+                                [
+                                    'type' => 'tableCell',
+                                    'content' => [
+                                        ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Cell']]],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    public function test_table_wrapped_in_responsive_div(): void
+    {
+        $html = $this->renderer->render($this->makeStyledTableJson());
+
+        $this->assertStringContainsString('<div class="table-responsive">', $html);
+        $this->assertStringContainsString('</table></div>', $html);
+    }
+
+    public function test_table_bordered_style(): void
+    {
+        $html = $this->renderer->render($this->makeStyledTableJson(['bordered' => true]));
+
+        $this->assertStringContainsString('table-bordered', $html);
+    }
+
+    public function test_table_striped_style(): void
+    {
+        $html = $this->renderer->render($this->makeStyledTableJson(['striped' => true]));
+
+        $this->assertStringContainsString('table-striped', $html);
+    }
+
+    public function test_table_hover_style(): void
+    {
+        $html = $this->renderer->render($this->makeStyledTableJson(['hover' => true]));
+
+        $this->assertStringContainsString('table-hover', $html);
+    }
+
+    public function test_table_small_style(): void
+    {
+        $html = $this->renderer->render($this->makeStyledTableJson(['small' => true]));
+
+        $this->assertStringContainsString('table-sm', $html);
+    }
+
+    public function test_table_align_middle_style(): void
+    {
+        $html = $this->renderer->render($this->makeStyledTableJson(['alignMiddle' => true]));
+
+        $this->assertStringContainsString('align-middle', $html);
+    }
+
+    public function test_table_all_styles_combined(): void
+    {
+        $html = $this->renderer->render($this->makeStyledTableJson([
+            'bordered' => true,
+            'striped' => true,
+            'hover' => true,
+            'small' => true,
+            'alignMiddle' => true,
+        ]));
+
+        $this->assertStringContainsString(
+            'class="table table-bordered table-striped table-hover table-sm align-middle"',
+            $html
+        );
+        $this->assertStringContainsString('<div class="table-responsive">', $html);
+    }
+
+    public function test_table_false_styles_not_rendered(): void
+    {
+        $html = $this->renderer->render($this->makeStyledTableJson([
+            'bordered' => false,
+            'striped' => false,
+        ]));
+
+        $this->assertStringContainsString('<table class="table">', $html);
+        $this->assertStringNotContainsString('table-bordered', $html);
+        $this->assertStringNotContainsString('table-striped', $html);
+    }
 }
