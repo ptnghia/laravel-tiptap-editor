@@ -203,32 +203,19 @@ const BootstrapButton = Node.create({
       dom.style.cursor = 'pointer';
       dom.contentEditable = 'false';
 
-      // Double-click to edit button properties
+      // Double-click to edit button properties via modal
       dom.addEventListener('dblclick', (e) => {
         e.preventDefault();
         e.stopPropagation();
 
-        const newText = prompt('Button text:', node.attrs.text || 'Button');
-        if (newText === null) return;
-
-        const newUrl = prompt('Button URL:', node.attrs.url || '#');
-        if (newUrl === null) return;
-
         const pos = getPos();
         if (typeof pos !== 'number') return;
 
-        editor
-          .chain()
-          .focus()
-          .command(({ tr }) => {
-            tr.setNodeMarkup(pos, undefined, {
-              ...node.attrs,
-              text: newText,
-              url: newUrl,
-            });
-            return true;
-          })
-          .run();
+        // Open ButtonModal in edit mode if available via toolbar
+        const toolbar = editor._tiptapToolbar;
+        if (toolbar?.buttonModal) {
+          toolbar.buttonModal.open(node.attrs, pos);
+        }
       });
 
       return {

@@ -8,6 +8,10 @@
 import { ImageModal } from './ImageModal.js';
 import { LinkModal } from './LinkModal.js';
 import { VideoModal } from './VideoModal.js';
+import { TableModal } from './TableModal.js';
+import { ButtonModal } from './ButtonModal.js';
+import { CardModal } from './CardModal.js';
+import { GalleryModal } from './GalleryModal.js';
 
 /**
  * Button definition: maps a toolbar button ID to its editor command, icon, and label.
@@ -168,8 +172,7 @@ const BUTTON_DEFINITIONS = {
   table: {
     icon: 'table',
     label: 'Table',
-    command: 'insertTable',
-    commandArgs: { rows: 3, cols: 3, withHeaderRow: true },
+    command: '_promptTable',
   },
 
   // ── History ──────────────────────────
@@ -324,6 +327,10 @@ export default class Toolbar {
     this.imageModal = new ImageModal(this);
     this.linkModal = new LinkModal(this);
     this.videoModal = new VideoModal(this);
+    this.tableModal = new TableModal(this);
+    this.buttonModal = new ButtonModal(this);
+    this.cardModal = new CardModal(this);
+    this.galleryModal = new GalleryModal(this);
 
     this._render();
     this._bindEvents();
@@ -590,6 +597,10 @@ export default class Toolbar {
       this._handleImage();
       return;
     }
+    if (command === '_promptTable') {
+      this.tableModal.open();
+      return;
+    }
     if (command === '_promptColor') {
       // Color is handled by the color input, skip
       return;
@@ -710,34 +721,19 @@ export default class Toolbar {
   }
 
   /**
-   * Handle card insertion with prompt for header text.
+   * Handle card insertion – opens the CardModal.
    * @private
    */
   _handleInsertCard() {
-    const headerText = prompt('Card header (leave empty for no header):') || null;
-    this.editor
-      .chain()
-      .focus()
-      .insertBootstrapCard({ headerText })
-      .run();
+    this.cardModal.open();
   }
 
   /**
-   * Handle button insertion with prompts.
+   * Handle button insertion – opens the ButtonModal.
    * @private
    */
   _handleInsertButton() {
-    const text = prompt('Button text:', 'Click me');
-    if (text === null) return;
-
-    const url = prompt('Button URL:', '#');
-    if (url === null) return;
-
-    this.editor
-      .chain()
-      .focus()
-      .insertBootstrapButton({ text, url })
-      .run();
+    this.buttonModal.open();
   }
 
   /**
@@ -749,57 +745,11 @@ export default class Toolbar {
   }
 
   /**
-   * Handle gallery insertion with file picker for multiple images.
+   * Handle gallery insertion – opens the GalleryModal.
    * @private
    */
   _handleGallery() {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    fileInput.multiple = true;
-    fileInput.style.display = 'none';
-
-    fileInput.addEventListener('change', async (e) => {
-      const files = Array.from(e.target.files || []);
-      if (files.length === 0) return;
-
-      try {
-        const uploadUrl = this._getUploadUrl();
-        const images = [];
-
-        for (const file of files) {
-          if (uploadUrl) {
-            const media = await this._uploadFile(file, uploadUrl);
-            images.push({ src: media.url, alt: media.alt || file.name });
-          } else {
-            // Fallback: use base64
-            const src = await new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result);
-              reader.readAsDataURL(file);
-            });
-            images.push({ src, alt: file.name });
-          }
-        }
-
-        if (images.length > 0) {
-          const columns = images.length >= 4 ? 4 : images.length >= 3 ? 3 : 2;
-          this.editor
-            .chain()
-            .focus()
-            .insertGallery({ images, columns })
-            .run();
-        }
-      } catch (err) {
-        console.error('[TiptapEditor] Gallery upload failed:', err);
-        alert('Gallery upload failed. Please try again.');
-      } finally {
-        fileInput.remove();
-      }
-    });
-
-    document.body.appendChild(fileInput);
-    fileInput.click();
+    this.galleryModal.open();
   }
 
   /**
@@ -863,6 +813,14 @@ export default class Toolbar {
     this.linkModal = null;
     this.videoModal?.destroy();
     this.videoModal = null;
+    this.tableModal?.destroy();
+    this.tableModal = null;
+    this.buttonModal?.destroy();
+    this.buttonModal = null;
+    this.cardModal?.destroy();
+    this.cardModal = null;
+    this.galleryModal?.destroy();
+    this.galleryModal = null;
     this.buttons.clear();
     this.element.innerHTML = '';
     if (this.editor) this.editor._tiptapToolbar = null;
