@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Suspended\TiptapEditor\Services;
 
+use Suspended\TiptapEditor\Services\ClassMap\ClassMapInterface;
 use Suspended\TiptapEditor\Support\NodeRegistry;
 
 class HtmlRenderer
@@ -13,6 +14,7 @@ class HtmlRenderer
      */
     public function __construct(
         protected NodeRegistry $nodeRegistry,
+        protected ClassMapInterface $classMap,
     ) {
     }
 
@@ -172,64 +174,55 @@ class HtmlRenderer
     }
 
     /**
-     * Render a Bootstrap row node.
+     * Render a Bootstrap/grid row node.
      *
      * @param  array<string, mixed>  $attrs
      */
     protected function renderBootstrapRow(array $attrs, string $childrenHtml): string
     {
-        $gutter = (int) ($attrs['gutter'] ?? 3);
-        $gutter = max(0, min(5, $gutter));
+        $gutter = max(0, min(5, (int) ($attrs['gutter'] ?? 3)));
 
-        $classes = "row g-{$gutter}";
+        $allowedJustify = ['center', 'end', 'between', 'around', 'evenly'];
+        $allowedAlign   = ['start', 'center', 'end'];
 
-        $justifyMap = [
-            'center' => 'justify-content-center',
-            'end' => 'justify-content-end',
-            'between' => 'justify-content-between',
-            'around' => 'justify-content-around',
-            'evenly' => 'justify-content-evenly',
-        ];
+        $justify = isset($attrs['justifyContent']) && in_array($attrs['justifyContent'], $allowedJustify, true)
+            ? $attrs['justifyContent']
+            : null;
 
-        $alignMap = [
-            'start' => 'align-items-start',
-            'center' => 'align-items-center',
-            'end' => 'align-items-end',
-        ];
+        $align = isset($attrs['alignItems']) && in_array($attrs['alignItems'], $allowedAlign, true)
+            ? $attrs['alignItems']
+            : null;
 
-        $justify = $attrs['justifyContent'] ?? null;
-        if ($justify && isset($justifyMap[$justify])) {
-            $classes .= ' ' . $justifyMap[$justify];
-        }
+        $modifiers = array_filter([
+            'gutter'  => $gutter,
+            'justify' => $justify,
+            'align'   => $align,
+        ], fn ($v) => $v !== null);
 
-        $align = $attrs['alignItems'] ?? null;
-        if ($align && isset($alignMap[$align])) {
-            $classes .= ' ' . $alignMap[$align];
-        }
+        $classes = $this->classMap->get('row', $modifiers);
 
-        return "<div class=\"{$classes}\">{$childrenHtml}</div>";
+        $dataAttrs = $this->classMap->isTailwind()
+            ? ' data-tiptap-type="row"'
+            : '';
+
+        return "<div class=\"{$classes}\"{$dataAttrs}>{$childrenHtml}</div>";
     }
 
     /**
-     * Render a Bootstrap column node.
+     * Render a Bootstrap/grid column node.
      *
      * @param  array<string, mixed>  $attrs
      */
     protected function renderBootstrapCol(array $attrs, string $childrenHtml): string
     {
-        $colClass = e($attrs['colClass'] ?? 'col');
+        $colClass = (string) ($attrs['colClass'] ?? 'col');
+        $classes  = $this->classMap->get('col', ['colClass' => $colClass]);
 
-        // Validate class names – only allow Bootstrap column patterns
-        $sanitized = implode(' ', array_filter(
-            explode(' ', $colClass),
-            fn (string $cls) => (bool) preg_match('/^col(-(?:sm|md|lg|xl|xxl))?(-(?:auto|\d{1,2}))?$/', $cls)
-        ));
+        $dataAttrs = $this->classMap->isTailwind()
+            ? ' data-tiptap-type="col"'
+            : '';
 
-        if ($sanitized === '') {
-            $sanitized = 'col';
-        }
-
-        return "<div class=\"{$sanitized}\">{$childrenHtml}</div>";
+        return "<div class=\"{$classes}\"{$dataAttrs}>{$childrenHtml}</div>";
     }
 
     /**
@@ -242,7 +235,13 @@ class HtmlRenderer
         $allowedTypes = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark'];
         $type = in_array($attrs['type'] ?? '', $allowedTypes, true) ? $attrs['type'] : 'info';
 
-        return "<div class=\"alert alert-{$type}\" role=\"alert\">{$childrenHtml}</div>";
+        $classes = $this->classMap->get('alert', ['type' => $type]);
+
+        $dataAttrs = $this->classMap->isTailwind()
+            ? " data-tiptap-type=\"alert\" data-tiptap-variant=\"{$type}\""
+            : '';
+
+        return "<div class=\"{$classes}\"{$dataAttrs} role=\"alert\">{$childrenHtml}</div>";
     }
 
     /**
@@ -257,24 +256,29 @@ class HtmlRenderer
             ? $attrs['borderColor']
             : null;
 
-        $classes = 'card';
-        if ($borderColor !== null) {
-            $classes .= " border-{$borderColor}";
-        }
+        $modifiers    = $borderColor !== null ? ['borderColor' => $borderColor] : [];
+        $cardClass    = $this->classMap->get('card', $modifiers);
+        $headerClass  = $this->classMap->get('card.header');
+        $bodyClass    = $this->classMap->get('card.body');
+        $footerClass  = $this->classMap->get('card.footer');
+
+        $dataAttrs = $this->classMap->isTailwind()
+            ? ' data-tiptap-type="card"'
+            : '';
 
         $header = '';
         if (! empty($attrs['headerText'])) {
             $headerText = e($attrs['headerText']);
-            $header = "<div class=\"card-header\">{$headerText}</div>";
+            $header = "<div class=\"{$headerClass}\">{$headerText}</div>";
         }
 
         $footer = '';
         if (! empty($attrs['footerText'])) {
             $footerText = e($attrs['footerText']);
-            $footer = "<div class=\"card-footer\">{$footerText}</div>";
+            $footer = "<div class=\"{$footerClass}\">{$footerText}</div>";
         }
 
-        return "<div class=\"{$classes}\">{$header}<div class=\"card-body\">{$childrenHtml}</div>{$footer}</div>";
+        return "<div class=\"{$cardClass}\"{$dataAttrs}>{$header}<div class=\"{$bodyClass}\">{$childrenHtml}</div>{$footer}</div>";
     }
 
     /**
@@ -287,17 +291,20 @@ class HtmlRenderer
         $allowedVariants = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark', 'link'];
         $variant = in_array($attrs['variant'] ?? '', $allowedVariants, true) ? $attrs['variant'] : 'primary';
         $outline = ! empty($attrs['outline']);
-        $btnClass = $outline ? "btn-outline-{$variant}" : "btn-{$variant}";
-
-        $classes = "btn {$btnClass}";
 
         $allowedSizes = ['sm', 'lg'];
-        if (isset($attrs['size']) && in_array($attrs['size'], $allowedSizes, true)) {
-            $classes .= " btn-{$attrs['size']}";
-        }
+        $size = isset($attrs['size']) && in_array($attrs['size'], $allowedSizes, true) ? $attrs['size'] : null;
 
-        $href = e($attrs['url'] ?? '#');
-        $text = e($attrs['text'] ?? 'Button');
+        $modifiers = array_filter([
+            'variant' => $variant,
+            'outline' => $outline ?: null,
+            'size'    => $size,
+        ], fn ($v) => $v !== null);
+
+        $classes = $this->classMap->get('button', $modifiers);
+
+        $href   = e($attrs['url'] ?? '#');
+        $text   = e($attrs['text'] ?? 'Button');
         $target = isset($attrs['target']) && $attrs['target'] === '_blank'
             ? ' target="_blank" rel="noopener noreferrer"'
             : '';
@@ -341,8 +348,11 @@ class HtmlRenderer
         // Width style (e.g. "50%" / "400px")
         $widthStyle = ! empty($attrs['widthStyle']) ? ' style="width:' . e($attrs['widthStyle']) . '"' : '';
 
+        // Image class from ClassMap
+        $imgClass = $this->classMap->get('image');
+
         // Build <img>
-        $img = "<img src=\"{$src}\" alt=\"{$alt}\"{$title}{$width}{$height}{$loading} class=\"img-fluid\">";
+        $img = "<img src=\"{$src}\" alt=\"{$alt}\"{$title}{$width}{$height}{$loading} class=\"{$imgClass}\">";
 
         // Wrap in <a> if linkUrl is set
         $linkUrl    = $attrs['linkUrl']    ?? null;
@@ -357,11 +367,16 @@ class HtmlRenderer
         // Caption
         $caption = '';
         if (! empty($attrs['caption'])) {
-            $captionText = e($attrs['caption']);
-            $caption = "<figcaption class=\"figure-caption\">{$captionText}</figcaption>";
+            $captionText  = e($attrs['caption']);
+            $captionClass = $this->classMap->get('image.caption');
+            $caption = "<figcaption class=\"{$captionClass}\">{$captionText}</figcaption>";
         }
 
-        return "<figure class=\"{$alignClass}{$extraClass}\"{$widthStyle}>{$img}{$caption}</figure>";
+        $dataAttrs = $this->classMap->isTailwind()
+            ? ' data-tiptap-type="image"'
+            : '';
+
+        return "<figure class=\"{$alignClass}{$extraClass}\"{$widthStyle}{$dataAttrs}>{$img}{$caption}</figure>";
     }
 
     /**
@@ -378,9 +393,8 @@ class HtmlRenderer
 
         // Aspect ratio
         $allowedRatios = ['16x9', '4x3', '1x1', '21x9', '9x16'];
-        $rawRatio = $attrs['aspectRatio'] ?? '16x9';
-        $aspectRatio = in_array($rawRatio, $allowedRatios, true) ? $rawRatio : '16x9';
-        $ratioClass = "ratio-{$aspectRatio}";
+        $rawRatio      = $attrs['aspectRatio'] ?? '16x9';
+        $aspectRatio   = in_array($rawRatio, $allowedRatios, true) ? $rawRatio : '16x9';
 
         // Alignment
         $alignment = $attrs['alignment'] ?? 'center';
@@ -399,10 +413,13 @@ class HtmlRenderer
         $figureStyle = $widthStyle !== '' ? " style=\"{$widthStyle}\"" : '';
 
         // Build inner media
+        // Ratio wrapper class from ClassMap
+        $ratioWrapperClass = $this->classMap->get('video.ratio', ['ratio' => $aspectRatio]);
+
         $mediaHtml = '';
         if ($provider === 'mp4') {
             $url = e($attrs['url'] ?? $videoId);
-            $mediaHtml = '<div class="ratio ' . $ratioClass . '">'
+            $mediaHtml = "<div class=\"{$ratioWrapperClass}\">"
                 . "<video controls title=\"{$title}\">"
                 . "<source src=\"{$url}\" type=\"video/mp4\">"
                 . '</video></div>';
@@ -415,8 +432,8 @@ class HtmlRenderer
             if ($embedUrl === '') {
                 return '';
             }
-            $embedUrl = e($embedUrl);
-            $mediaHtml = '<div class="ratio ' . $ratioClass . '">'
+            $embedUrl  = e($embedUrl);
+            $mediaHtml = "<div class=\"{$ratioWrapperClass}\">"
                 . "<iframe src=\"{$embedUrl}\" title=\"{$title}\""
                 . ' allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"'
                 . ' allowfullscreen loading="lazy"></iframe></div>';
@@ -424,7 +441,11 @@ class HtmlRenderer
 
         $captionHtml = $caption !== '' ? "<figcaption>{$caption}</figcaption>" : '';
 
-        return "<figure class=\"tiptap-video-figure {$alignClass}\"{$figureStyle}>{$mediaHtml}{$captionHtml}</figure>";
+        $dataAttrs = $this->classMap->isTailwind()
+            ? ' data-tiptap-type="video"'
+            : '';
+
+        return "<figure class=\"tiptap-video-figure {$alignClass}\"{$figureStyle}{$dataAttrs}>{$mediaHtml}{$captionHtml}</figure>";
     }
 
     /**
@@ -441,9 +462,15 @@ class HtmlRenderer
 
         $gap = max(0, min(5, (int) ($attrs['gap'] ?? 2)));
 
+        $classes = $this->classMap->get('gallery', ['gap' => $gap, 'columns' => $columns]);
+
         $lightboxAttr = ! empty($attrs['lightbox']) ? ' data-lightbox="true"' : '';
 
-        return "<div class=\"row g-{$gap}\"{$lightboxAttr}>{$childrenHtml}</div>";
+        $dataAttrs = $this->classMap->isTailwind()
+            ? ' data-tiptap-type="gallery"'
+            : '';
+
+        return "<div class=\"{$classes}\"{$lightboxAttr}{$dataAttrs}>{$childrenHtml}</div>";
     }
 
     /**
@@ -460,41 +487,36 @@ class HtmlRenderer
 
         $alt = e($attrs['alt'] ?? '');
 
-        // Validate colClass format (e.g. col-4, col-md-6)
-        $colClass = ($attrs['colClass'] ?? 'col-4');
-        if (! preg_match('/^col(-\w+)*$/', $colClass)) {
-            $colClass = 'col-4';
-        }
+        $colClass  = (string) ($attrs['colClass'] ?? 'col-4');
+        $itemClass = $this->classMap->get('gallery.item', ['colClass' => $colClass]);
+        $imgClass  = $this->classMap->get('gallery.image');
 
-        return "<div class=\"{$colClass}\"><img src=\"{$src}\" alt=\"{$alt}\" class=\"img-fluid rounded\" loading=\"lazy\"></div>";
+        return "<div class=\"{$itemClass}\"><img src=\"{$src}\" alt=\"{$alt}\" class=\"{$imgClass}\" loading=\"lazy\"></div>";
     }
 
     /**
-     * Render a table node with Bootstrap 5 classes and responsive wrapper.
+     * Render a table node with appropriate classes and responsive wrapper.
      *
      * @param  array<string, mixed>  $attrs
      */
     protected function renderTable(array $attrs, string $childrenHtml): string
     {
-        $classes = 'table';
+        $modifiers = [
+            'bordered'    => ! empty($attrs['bordered']),
+            'striped'     => ! empty($attrs['striped']),
+            'hover'       => ! empty($attrs['hover']),
+            'small'       => ! empty($attrs['small']),
+            'alignMiddle' => ! empty($attrs['alignMiddle']),
+        ];
 
-        if (! empty($attrs['bordered'])) {
-            $classes .= ' table-bordered';
-        }
-        if (! empty($attrs['striped'])) {
-            $classes .= ' table-striped';
-        }
-        if (! empty($attrs['hover'])) {
-            $classes .= ' table-hover';
-        }
-        if (! empty($attrs['small'])) {
-            $classes .= ' table-sm';
-        }
-        if (! empty($attrs['alignMiddle'])) {
-            $classes .= ' align-middle';
-        }
+        $tableClass   = $this->classMap->get('table', $modifiers);
+        $wrapperClass = $this->classMap->get('table.wrapper');
 
-        return "<div class=\"table-responsive\"><table class=\"{$classes}\">{$childrenHtml}</table></div>";
+        $dataAttrs = $this->classMap->isTailwind()
+            ? ' data-tiptap-type="table"'
+            : '';
+
+        return "<div class=\"{$wrapperClass}\"{$dataAttrs}><table class=\"{$tableClass}\">{$childrenHtml}</table></div>";
     }
 
     /**

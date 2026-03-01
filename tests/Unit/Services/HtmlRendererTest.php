@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Suspended\TiptapEditor\Tests\Unit\Services;
 
+use Suspended\TiptapEditor\Services\ClassMap\BootstrapClassMap;
 use Suspended\TiptapEditor\Services\HtmlRenderer;
 use Suspended\TiptapEditor\Support\NodeRegistry;
 use Suspended\TiptapEditor\Tests\TestCase;
@@ -15,7 +16,7 @@ class HtmlRendererTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->renderer = new HtmlRenderer(new NodeRegistry());
+        $this->renderer = new HtmlRenderer(new NodeRegistry(), new BootstrapClassMap());
     }
 
     public function test_renders_empty_content(): void

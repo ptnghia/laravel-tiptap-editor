@@ -276,9 +276,63 @@ return [
     */
 
     'rendering' => [
-        'cache' => env('TIPTAP_RENDER_CACHE', true),
+        'cache'    => env('TIPTAP_RENDER_CACHE', true),
         'cache_ttl' => 3600, // seconds
-        'minify' => false,
+        'minify'   => false,
+
+        /*
+        |----------------------------------------------------------------------
+        | Output Theme (CSS Framework)
+        |----------------------------------------------------------------------
+        |
+        | Controls the CSS class framework used in server-rendered HTML output.
+        |
+        |  'bootstrap' (default) – Bootstrap 5 classes (e.g. btn, alert, card)
+        |  'tailwind'            – Tailwind CSS utility classes
+        |
+        | This setting does NOT affect the editor UI, only the rendered HTML
+        | output returned by TiptapEditor::render() and renderContent().
+        | Bootstrap remains the default for backward compatibility.
+        |
+        */
+        'output_theme' => env('TIPTAP_OUTPUT_THEME', 'bootstrap'),
+
+        /*
+        |----------------------------------------------------------------------
+        | Tailwind Fallback CSS
+        |----------------------------------------------------------------------
+        |
+        | When output_theme = 'tailwind', rendered HTML uses Tailwind utility
+        | classes. If your project does NOT have Tailwind installed, enable
+        | this option to auto-inject a pre-built fallback stylesheet that
+        | covers all classes used by this package.
+        |
+        | The fallback CSS is available at:
+        |   public/vendor/tiptap-editor/css/tailwind-fallback.css
+        |
+        | Publish with:
+        |   php artisan vendor:publish --tag=tiptap-editor-assets
+        |
+        */
+        'tailwind_fallback_css' => env('TIPTAP_TAILWIND_FALLBACK_CSS', false),
+
+        /*
+        |----------------------------------------------------------------------
+        | Class Overrides
+        |----------------------------------------------------------------------
+        |
+        | Override specific component class strings for either theme.
+        | Keyed by the component name used in ClassMapInterface::get().
+        |
+        | Example:
+        |   'class_overrides' => [
+        |       'card'       => 'my-card rounded-xl shadow-lg',
+        |       'card.body'  => 'my-card-body p-8',
+        |       'alert'      => 'my-custom-alert',
+        |   ],
+        |
+        */
+        'class_overrides' => [],
     ],
 
     /*

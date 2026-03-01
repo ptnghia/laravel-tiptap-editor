@@ -6,6 +6,9 @@ namespace Suspended\TiptapEditor;
 
 use Illuminate\Support\ServiceProvider;
 use Suspended\TiptapEditor\Services\AiContentService;
+use Suspended\TiptapEditor\Services\ClassMap\BootstrapClassMap;
+use Suspended\TiptapEditor\Services\ClassMap\ClassMapInterface;
+use Suspended\TiptapEditor\Services\ClassMap\TailwindClassMap;
 use Suspended\TiptapEditor\Services\ContentValidator;
 use Suspended\TiptapEditor\Services\HtmlRenderer;
 use Suspended\TiptapEditor\Services\JsonSanitizer;
@@ -53,9 +56,21 @@ class EditorServiceProvider extends ServiceProvider
             );
         });
 
+        // Bind ClassMapInterface based on output_theme config
+        $this->app->singleton(ClassMapInterface::class, function ($app) {
+            $theme     = config('tiptap-editor.rendering.output_theme', 'bootstrap');
+            $overrides = config('tiptap-editor.rendering.class_overrides', []);
+
+            return match ($theme) {
+                'tailwind' => new TailwindClassMap($overrides),
+                default    => new BootstrapClassMap($overrides),
+            };
+        });
+
         $this->app->singleton(HtmlRenderer::class, function ($app) {
             return new HtmlRenderer(
-                $app->make(NodeRegistry::class)
+                $app->make(NodeRegistry::class),
+                $app->make(ClassMapInterface::class),
             );
         });
 
@@ -120,6 +135,7 @@ class EditorServiceProvider extends ServiceProvider
         // Assets (JS/CSS)
         $this->publishes([
             __DIR__ . '/../dist' => public_path('vendor/tiptap-editor'),
+            __DIR__ . '/../resources/css/tailwind-fallback.css' => public_path('vendor/tiptap-editor/css/tailwind-fallback.css'),
         ], 'tiptap-editor-assets');
 
         // Migrations

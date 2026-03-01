@@ -3,9 +3,10 @@
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue)](https://php.net)
 [![Laravel](https://img.shields.io/badge/Laravel-11%20|%2012-red)](https://laravel.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-202%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-214%20passing-brightgreen)](tests/)
+[![Version](https://img.shields.io/badge/version-v1.3.0-blue)](CHANGELOG.md)
 
-A full-featured **Laravel package** providing a rich text editor built on **[Tiptap v2](https://tiptap.dev)**, **Bootstrap 5**, with media management, server-side rendering, and optional AI content generation. Works with standard Laravel + Blade — no SPA required.
+A full-featured **Laravel package** providing a rich text editor built on **[Tiptap v2](https://tiptap.dev)**, **Bootstrap 5** (or **Tailwind CSS**), with media management, server-side rendering, and optional AI content generation. Works with standard Laravel + Blade — no SPA required.
 
 ---
 
@@ -25,7 +26,7 @@ A full-featured **Laravel package** providing a rich text editor built on **[Tip
 - **Block Menu** — Floating action menu: duplicate, move up/down, delete, transform block
 - **Content Safety** — JSON sanitization, URL whitelist, XSS prevention, depth/size limits, file content scanning, SVG sanitization
 - **Upload Security** — Gate/role-based permissions, blocked extensions, MIME mismatch detection, double-extension prevention, anti-polyglot scanning
-- **Server-side Rendering** — JSON → clean HTML via Blade partials
+- **Server-side Rendering** — JSON → clean HTML via Blade partials; supports **Bootstrap 5** or **Tailwind CSS** output theme
 - **Dark Mode** — Auto (system), light, dark via CSS variables
 - **Keyboard Shortcuts** — Built-in `Ctrl+/` help modal with all shortcuts listed
 - **Accessibility** — WCAG 2.1 AA: ARIA roles, roving tabindex, live region announcements
@@ -264,6 +265,42 @@ Override per-instance in Blade:
 ```php
 'theme' => 'auto',  // 'auto' | 'light' | 'dark'
 ```
+
+### Output Theme (Tailwind CSS)
+
+By default the server-rendered HTML uses **Bootstrap 5** classes. Switch to Tailwind with a single config change:
+
+```php
+// config/tiptap-editor.php
+'rendering' => [
+    'output_theme' => 'tailwind',  // 'bootstrap' (default) | 'tailwind'
+
+    // Auto-inject a pre-built fallback stylesheet if your project
+    // does not have Tailwind CSS installed/built:
+    'tailwind_fallback_css' => true,
+
+    // Override specific component classes:
+    'class_overrides' => [
+        'card'      => 'my-card rounded-xl shadow-lg',
+        'card.body' => 'p-8',
+    ],
+],
+```
+
+> **Note:** `output_theme` only affects rendered **output HTML** (e.g. `TiptapEditor::render()`). The editor admin UI is unaffected.
+
+**Tailwind purge** — Tailwind purges classes at build time. Add the safelist below to `tailwind.config.js` in your host app so dynamic content classes are not stripped:
+
+```javascript
+safelist: [
+    { pattern: /^(sm|md|lg|xl):col-span-(1[0-2]|[1-9])$/ },
+    { pattern: /^col-span-(1[0-2]|[1-9])$/ },
+    { pattern: /^gap-[0-5]$/ },
+    { pattern: /^(bg|text|border)-(blue|red|green|yellow|gray|sky)-(50|100|200|500|600|700|800|900)$/ },
+],
+```
+
+Alternatively, enable `tailwind_fallback_css` (zero-config, no Tailwind install required) — a pre-built stylesheet covering all package classes is published to `public/vendor/tiptap-editor/css/tailwind-fallback.css`.
 
 ### Media Settings
 
@@ -651,7 +688,7 @@ php artisan vendor:publish --tag=tiptap-editor-lang
 ./vendor/bin/phpunit
 ```
 
-**202 tests, 422 assertions** covering HTML rendering, sanitization, content validation, media, tables, AI providers, gallery, traits, config, and translations.
+**214 tests, 440 assertions** covering HTML rendering, sanitization, content validation, media, tables, AI providers, gallery, traits, config, and translations.
 
 ---
 
@@ -699,6 +736,21 @@ MIT License. See [LICENSE](LICENSE) for details.
 ---
 
 ## Changelog
+
+### v1.3.0 — 2026-03-01
+
+**Tailwind CSS Output Theme**
+- New `ClassMapInterface` / `ClassMap` architecture — Strategy pattern for CSS framework–agnostic HTML rendering
+- `BootstrapClassMap` — extracts all existing Bootstrap 5 classes (zero behavior change, fully backward compatible)
+- `TailwindClassMap` — full Tailwind CSS equivalents for every component: Alert, Card, Button, Row/Col grid, Table, Image, Video, Gallery
+- Automatic Bootstrap col class → Tailwind `col-span-*` / responsive `md:col-span-*` conversion
+- `data-tiptap-type` / `data-tiptap-variant` attributes added to output elements when using Tailwind theme (enables CSS targeting fallback)
+- New `resources/css/tailwind-fallback.css` (~13 KB) — pre-built stylesheet covering all Tailwind utility classes used in rendered output
+- Auto-inject fallback CSS via `@push('styles')` in Blade component when `tailwind_fallback_css = true`
+- New config keys under `rendering`: `output_theme`, `tailwind_fallback_css`, `class_overrides`
+- `output_theme` env variable: `TIPTAP_OUTPUT_THEME`
+
+**Breaking changes:** None — `output_theme` defaults to `'bootstrap'`.
 
 ### v1.1.0
 

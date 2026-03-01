@@ -1,0 +1,428 @@
+/**
+ * Tiptap Editor – Tailwind Fallback CSS
+ *
+ * Pre-built stylesheet covering all Tailwind utility classes used in
+ * server-rendered HTML output when output_theme = 'tailwind'.
+ *
+ * Use this file when your project does NOT have Tailwind CSS installed:
+ *
+ *   'rendering' => [
+ *       'output_theme' => 'tailwind',
+ *       'tailwind_fallback_css' => true, // auto-inject
+ *   ],
+ *
+ * Or include manually:
+ *   <link rel="stylesheet" href="{{ asset('vendor/tiptap-editor/css/tailwind-fallback.css') }}">
+ *
+ * Generated for: TailwindClassMap v1.3.0
+ */
+
+/* ============================================================
+   BASE RESETS / HELPERS
+   ============================================================ */
+
+.max-w-full { max-width: 100%; }
+.h-auto { height: auto; }
+.w-auto { width: auto; }
+.overflow-hidden { overflow: hidden; }
+.overflow-x-auto { overflow-x: auto; }
+.w-full { width: 100%; }
+
+/* Flex */
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+
+/* Text alignment */
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-start { text-align: start; }
+.text-end { text-align: end; }
+
+/* Font */
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.text-xs { font-size: 0.75rem; line-height: 1rem; }
+.text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.text-base { font-size: 1rem; line-height: 1.5rem; }
+.text-left { text-align: left; }
+
+/* Rounded */
+.rounded-md { border-radius: 0.375rem; }
+.rounded-lg { border-radius: 0.5rem; }
+.rounded-xl { border-radius: 0.75rem; }
+
+/* Shadow */
+.shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+
+/* Border */
+.border { border-width: 1px; border-style: solid; }
+.border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+.border-t { border-top-width: 1px; border-top-style: solid; }
+.border-gray-200 { border-color: #e5e7eb; }
+.border-gray-300 { border-color: #d1d5db; }
+.border-gray-800 { border-color: #1f2937; }
+.border-gray-900 { border-color: #111827; }
+.border-blue-200  { border-color: #bfdbfe; }
+.border-blue-500  { border-color: #3b82f6; }
+.border-blue-600  { border-color: #2563eb; }
+.border-green-200 { border-color: #bbf7d0; }
+.border-green-500 { border-color: #22c55e; }
+.border-green-600 { border-color: #16a34a; }
+.border-red-200   { border-color: #fecaca; }
+.border-red-500   { border-color: #ef4444; }
+.border-red-600   { border-color: #dc2626; }
+.border-yellow-200 { border-color: #fef08a; }
+.border-yellow-400 { border-color: #facc15; }
+.border-yellow-500 { border-color: #eab308; }
+.border-sky-200   { border-color: #bae6fd; }
+.border-sky-400   { border-color: #38bdf8; }
+.border-sky-500   { border-color: #0ea5e9; }
+.border-gray-500  { border-color: #6b7280; }
+
+/* Background */
+.bg-white       { background-color: #ffffff; }
+.bg-gray-50     { background-color: #f9fafb; }
+.bg-gray-100    { background-color: #f3f4f6; }
+.bg-gray-800    { background-color: #1f2937; }
+.bg-blue-50     { background-color: #eff6ff; }
+.bg-blue-600    { background-color: #2563eb; }
+.bg-green-50    { background-color: #f0fdf4; }
+.bg-green-600   { background-color: #16a34a; }
+.bg-red-50      { background-color: #fef2f2; }
+.bg-red-600     { background-color: #dc2626; }
+.bg-yellow-50   { background-color: #fefce8; }
+.bg-yellow-500  { background-color: #eab308; }
+.bg-sky-50      { background-color: #f0f9ff; }
+.bg-sky-500     { background-color: #0ea5e9; }
+.bg-transparent { background-color: transparent; }
+
+/* Text color */
+.text-white      { color: #ffffff; }
+.text-gray-500   { color: #6b7280; }
+.text-gray-600   { color: #4b5563; }
+.text-gray-700   { color: #374151; }
+.text-gray-800   { color: #1f2937; }
+.text-gray-900   { color: #111827; }
+.text-blue-600   { color: #2563eb; }
+.text-blue-800   { color: #1e40af; }
+.text-green-800  { color: #166534; }
+.text-red-800    { color: #991b1b; }
+.text-yellow-800 { color: #92400e; }
+.text-sky-800    { color: #075985; }
+
+/* Spacing – padding */
+.p-4  { padding: 1rem; }
+.p-6  { padding: 1.5rem; }
+.p-8  { padding: 2rem; }
+.px-2\.5 { padding-left: 0.625rem; padding-right: 0.625rem; }
+.px-4    { padding-left: 1rem; padding-right: 1rem; }
+.px-6    { padding-left: 1.5rem; padding-right: 1.5rem; }
+.py-1    { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+.py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+.py-2    { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.py-3    { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+.py-4    { padding-top: 1rem; padding-bottom: 1rem; }
+
+/* Spacing – margin */
+.mt-2 { margin-top: 0.5rem; }
+
+/* Transition */
+.transition-colors { transition-property: color, background-color, border-color; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+
+/* ============================================================
+   GRID – Row
+   ============================================================ */
+
+.grid { display: grid; }
+.grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.grid-cols-2  { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-cols-3  { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-cols-4  { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-cols-6  { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+
+.gap-0 { gap: 0; }
+.gap-1 { gap: 0.25rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-5 { gap: 1.25rem; }
+
+.justify-items-center { justify-items: center; }
+.justify-items-end    { justify-items: end; }
+.justify-between      { justify-content: space-between; }
+.justify-around       { justify-content: space-around; }
+.justify-evenly       { justify-content: space-evenly; }
+
+/* Grid – col-span */
+.col-span-1  { grid-column: span 1 / span 1; }
+.col-span-2  { grid-column: span 2 / span 2; }
+.col-span-3  { grid-column: span 3 / span 3; }
+.col-span-4  { grid-column: span 4 / span 4; }
+.col-span-5  { grid-column: span 5 / span 5; }
+.col-span-6  { grid-column: span 6 / span 6; }
+.col-span-7  { grid-column: span 7 / span 7; }
+.col-span-8  { grid-column: span 8 / span 8; }
+.col-span-9  { grid-column: span 9 / span 9; }
+.col-span-10 { grid-column: span 10 / span 10; }
+.col-span-11 { grid-column: span 11 / span 11; }
+.col-span-12 { grid-column: span 12 / span 12; }
+.col-span-full { grid-column: 1 / -1; }
+
+/* Responsive col-span – sm (640px+) */
+@media (min-width: 640px) {
+    .sm\:col-span-1  { grid-column: span 1 / span 1; }
+    .sm\:col-span-2  { grid-column: span 2 / span 2; }
+    .sm\:col-span-3  { grid-column: span 3 / span 3; }
+    .sm\:col-span-4  { grid-column: span 4 / span 4; }
+    .sm\:col-span-5  { grid-column: span 5 / span 5; }
+    .sm\:col-span-6  { grid-column: span 6 / span 6; }
+    .sm\:col-span-7  { grid-column: span 7 / span 7; }
+    .sm\:col-span-8  { grid-column: span 8 / span 8; }
+    .sm\:col-span-9  { grid-column: span 9 / span 9; }
+    .sm\:col-span-10 { grid-column: span 10 / span 10; }
+    .sm\:col-span-11 { grid-column: span 11 / span 11; }
+    .sm\:col-span-12 { grid-column: span 12 / span 12; }
+}
+
+/* Responsive col-span – md (768px+) */
+@media (min-width: 768px) {
+    .md\:col-span-1  { grid-column: span 1 / span 1; }
+    .md\:col-span-2  { grid-column: span 2 / span 2; }
+    .md\:col-span-3  { grid-column: span 3 / span 3; }
+    .md\:col-span-4  { grid-column: span 4 / span 4; }
+    .md\:col-span-5  { grid-column: span 5 / span 5; }
+    .md\:col-span-6  { grid-column: span 6 / span 6; }
+    .md\:col-span-7  { grid-column: span 7 / span 7; }
+    .md\:col-span-8  { grid-column: span 8 / span 8; }
+    .md\:col-span-9  { grid-column: span 9 / span 9; }
+    .md\:col-span-10 { grid-column: span 10 / span 10; }
+    .md\:col-span-11 { grid-column: span 11 / span 11; }
+    .md\:col-span-12 { grid-column: span 12 / span 12; }
+}
+
+/* Responsive col-span – lg (1024px+) */
+@media (min-width: 1024px) {
+    .lg\:col-span-1  { grid-column: span 1 / span 1; }
+    .lg\:col-span-2  { grid-column: span 2 / span 2; }
+    .lg\:col-span-3  { grid-column: span 3 / span 3; }
+    .lg\:col-span-4  { grid-column: span 4 / span 4; }
+    .lg\:col-span-5  { grid-column: span 5 / span 5; }
+    .lg\:col-span-6  { grid-column: span 6 / span 6; }
+    .lg\:col-span-7  { grid-column: span 7 / span 7; }
+    .lg\:col-span-8  { grid-column: span 8 / span 8; }
+    .lg\:col-span-9  { grid-column: span 9 / span 9; }
+    .lg\:col-span-10 { grid-column: span 10 / span 10; }
+    .lg\:col-span-11 { grid-column: span 11 / span 11; }
+    .lg\:col-span-12 { grid-column: span 12 / span 12; }
+}
+
+/* Responsive col-span – xl (1280px+) */
+@media (min-width: 1280px) {
+    .xl\:col-span-1  { grid-column: span 1 / span 1; }
+    .xl\:col-span-2  { grid-column: span 2 / span 2; }
+    .xl\:col-span-3  { grid-column: span 3 / span 3; }
+    .xl\:col-span-4  { grid-column: span 4 / span 4; }
+    .xl\:col-span-5  { grid-column: span 5 / span 5; }
+    .xl\:col-span-6  { grid-column: span 6 / span 6; }
+    .xl\:col-span-7  { grid-column: span 7 / span 7; }
+    .xl\:col-span-8  { grid-column: span 8 / span 8; }
+    .xl\:col-span-9  { grid-column: span 9 / span 9; }
+    .xl\:col-span-10 { grid-column: span 10 / span 10; }
+    .xl\:col-span-11 { grid-column: span 11 / span 11; }
+    .xl\:col-span-12 { grid-column: span 12 / span 12; }
+}
+
+/* Responsive col-span – 2xl (1536px+) */
+@media (min-width: 1536px) {
+    .\32xl\:col-span-1  { grid-column: span 1 / span 1; }
+    .\32xl\:col-span-2  { grid-column: span 2 / span 2; }
+    .\32xl\:col-span-3  { grid-column: span 3 / span 3; }
+    .\32xl\:col-span-4  { grid-column: span 4 / span 4; }
+    .\32xl\:col-span-6  { grid-column: span 6 / span 6; }
+    .\32xl\:col-span-8  { grid-column: span 8 / span 8; }
+    .\32xl\:col-span-12 { grid-column: span 12 / span 12; }
+}
+
+/* ============================================================
+   COMPONENT: Alert  [data-tiptap-type="alert"]
+   ============================================================ */
+
+[data-tiptap-type="alert"] {
+    display: flex;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border-width: 1px;
+    border-style: solid;
+    margin-bottom: 1rem;
+}
+
+[data-tiptap-type="alert"][data-tiptap-variant="primary"]   { background-color: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+[data-tiptap-type="alert"][data-tiptap-variant="secondary"] { background-color: #f9fafb; color: #1f2937; border-color: #e5e7eb; }
+[data-tiptap-type="alert"][data-tiptap-variant="success"]   { background-color: #f0fdf4; color: #166534; border-color: #bbf7d0; }
+[data-tiptap-type="alert"][data-tiptap-variant="danger"]    { background-color: #fef2f2; color: #991b1b; border-color: #fecaca; }
+[data-tiptap-type="alert"][data-tiptap-variant="warning"]   { background-color: #fefce8; color: #92400e; border-color: #fef08a; }
+[data-tiptap-type="alert"][data-tiptap-variant="info"]      { background-color: #f0f9ff; color: #075985; border-color: #bae6fd; }
+[data-tiptap-type="alert"][data-tiptap-variant="light"]     { background-color: #ffffff; color: #1f2937; border-color: #e5e7eb; }
+[data-tiptap-type="alert"][data-tiptap-variant="dark"]      { background-color: #1f2937; color: #ffffff; border-color: #111827; }
+
+/* ============================================================
+   COMPONENT: Card  [data-tiptap-type="card"]
+   ============================================================ */
+
+[data-tiptap-type="card"] {
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+[data-tiptap-type="card"] > .px-6.py-4.bg-gray-50.border-b {
+    padding: 1rem 1.5rem;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 600;
+    color: #111827;
+}
+
+[data-tiptap-type="card"] > .p-6 {
+    padding: 1.5rem;
+}
+
+[data-tiptap-type="card"] > .px-6.py-4.bg-gray-50.border-t {
+    padding: 1rem 1.5rem;
+    background-color: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    font-size: 0.875rem;
+    color: #4b5563;
+}
+
+/* ============================================================
+   COMPONENT: Table  [data-tiptap-type="table"]
+   ============================================================ */
+
+[data-tiptap-type="table"] {
+    overflow-x: auto;
+}
+
+[data-tiptap-type="table"] table {
+    width: 100%;
+    font-size: 0.875rem;
+    text-align: left;
+    color: #374151;
+    border-collapse: collapse;
+}
+
+[data-tiptap-type="table"] th,
+[data-tiptap-type="table"] td {
+    padding: 0.625rem 0.75rem;
+}
+
+[data-tiptap-type="table"] thead tr {
+    background-color: #f9fafb;
+    font-weight: 600;
+}
+
+[data-tiptap-type="table"] tbody tr:nth-child(even) {
+    background-color: #f9fafb;
+}
+
+[data-tiptap-type="table"] tbody tr:hover {
+    background-color: #f3f4f6;
+}
+
+/* ============================================================
+   COMPONENT: Image  [data-tiptap-type="image"]
+   ============================================================ */
+
+[data-tiptap-type="image"] img {
+    max-width: 100%;
+    height: auto;
+}
+
+[data-tiptap-type="image"] figcaption {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+/* ============================================================
+   COMPONENT: Video  [data-tiptap-type="video"]
+   ============================================================ */
+
+[data-tiptap-type="video"] figure {
+    margin-bottom: 1rem;
+}
+
+/* Aspect ratio wrappers */
+.aspect-video   { aspect-ratio: 16 / 9; position: relative; }
+.aspect-square  { aspect-ratio: 1 / 1; position: relative; }
+
+/* Arbitrary aspect ratios via separate class approach */
+.tiptap-aspect-4-3  { aspect-ratio: 4 / 3; position: relative; }
+.tiptap-aspect-21-9 { aspect-ratio: 21 / 9; position: relative; }
+.tiptap-aspect-9-16 { aspect-ratio: 9 / 16; position: relative; }
+
+/* Aspect ratio child fills parent */
+.aspect-video > iframe,
+.aspect-video > video,
+.aspect-square > iframe,
+.aspect-square > video,
+.tiptap-aspect-4-3 > iframe,
+.tiptap-aspect-4-3 > video,
+.tiptap-aspect-21-9 > iframe,
+.tiptap-aspect-21-9 > video,
+.tiptap-aspect-9-16 > iframe,
+.tiptap-aspect-9-16 > video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* ============================================================
+   COMPONENT: Gallery  [data-tiptap-type="gallery"]
+   ============================================================ */
+
+[data-tiptap-type="gallery"] {
+    display: grid;
+    gap: 0.5rem;
+}
+
+[data-tiptap-type="gallery"] img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.375rem;
+    display: block;
+    width: 100%;
+    object-fit: cover;
+}
+
+/* ============================================================
+   BUTTONS – Tailwind utility class styles
+   ============================================================ */
+
+a[class*="inline-flex"][class*="rounded-md"],
+button[class*="inline-flex"][class*="rounded-md"] {
+    display: inline-flex;
+    align-items: center;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    transition-property: color, background-color, border-color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Focus rings (visible only on keyboard nav) */
+.focus\:outline-none:focus { outline: 2px solid transparent; outline-offset: 2px; }
+.focus\:ring-2:focus        { box-shadow: 0 0 0 2px; }
+.focus\:ring-offset-2:focus { box-shadow: 0 0 0 2px #fff, 0 0 0 4px; }

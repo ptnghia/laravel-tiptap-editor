@@ -4,6 +4,15 @@
     'disabled' => false,
 ])
 
+{{-- Auto-inject Tailwind fallback CSS once per page if enabled --}}
+@once
+    @if(config('tiptap-editor.rendering.output_theme') === 'tailwind' && config('tiptap-editor.rendering.tailwind_fallback_css'))
+        @push('styles')
+            <link rel="stylesheet" href="{{ asset('vendor/tiptap-editor/css/tailwind-fallback.css') }}">
+        @endpush
+    @endif
+@endonce
+
 <div
     id="{{ $id }}"
     class="tiptap-editor-wrapper"
